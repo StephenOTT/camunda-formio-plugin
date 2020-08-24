@@ -1,0 +1,7 @@
+.flatpickr-calendar {
+    display: none;
+}
+
+.flatpickr-calendar.open {
+    display:inline-block;
+}

@@ -1,0 +1,88 @@
+<form role="form">
+    <link rel="stylesheet" href="https://unpkg.com/formiojs@latest/dist/formio.full.min.css">
+    <link rel="stylesheet" href="https://stackpath.bootstrapcdn.com/font-awesome/4.7.0/css/font-awesome.min.css">
+
+    <div id="formio"></div>
+
+                                <script cam-script type="text/form-script">
+<!--    <script>-->
+        let startFormVariableName = 'startFormSubmission';
+
+        function getSchema(callback) {
+            inject(['$http', 'Uri', function ($http, Uri) {
+                let deploymentId = camForm.options.deploymentId
+
+                $http.get(Uri.appUri('engine://engine/:engine/deployment/' + deploymentId + '/resources')).then(function (response) {
+                    let formName = getParameterByName('app', camForm.options.formUrl);
+                    let formResource = response.data.find(i => i.name === formName);
+
+                    if (formResource === undefined) {
+                        console.error('Unable to find resource with name: ' + formName);
+                    }
+                    return {deploymentId: deploymentId, resourceId: formResource.id}
+                }).then(function (ids) {
+                    $http.get(Uri.appUri('engine://engine/:engine/deployment/' + ids.deploymentId + '/resources/' + ids.resourceId + '/data')).then(function (response) {
+                        debugger;
+                        return callback(response.data)
+                    });
+                });
+            }]);
+
+            function getParameterByName(name, url) {
+                if (!url) url = window.location.href;
+                name = name.replace(/[\[\]]/g, '\\$&');
+                var regex = new RegExp('[?&]' + name + '(=([^&#]*)|&|#|$)'),
+                    results = regex.exec(url);
+                if (!results) return null;
+                if (!results[2]) return '';
+                return decodeURIComponent(results[2].replace(/\+/g, ' '));
+            }
+        }
+
+        camForm.on('submit-error', function (evt, res) {
+            evt.submitPrevented = false;
+            console.log("Camunda-Formio Submission Error")
+        });
+
+
+        camForm.on('variables-fetched', function () {
+            var firstSubmit = true
+            getSchema(function (schema) {
+                debugger;
+                Formio.createForm(document.getElementById('formio'), schema)
+                    .then(function (form) {
+                        form.nosubmit = true;
+
+                        camForm.on('submit', function (evt) {
+                            evt.submitPrevented = firstSubmit
+                            if (firstSubmit) {
+                                result()
+                            }
+                            firstSubmit = true
+
+                            async function result() {
+                                await new Promise(function (resolve, reject) {
+                                    form.executeSubmit().then(res => {
+                                            var variableManager = camForm.variableManager;
+                                            variableManager.createVariable({
+                                                name: (camForm.taskId != null) ? camForm.taskId : startFormVariableName,
+                                                type: 'Json',
+                                                value: res,
+                                                isDirty: true
+                                            });
+                                            firstSubmit = false
+                                            $scope.complete()
+                                            resolve()
+                                        }, err => {
+                                            evt.submitPrevented = true
+                                            resolve()
+                                        }
+                                    )
+                                });
+                            }
+                        });
+                    });
+            })
+        });
+    </script>
+</form>

@@ -1,0 +1,157 @@
+<configuration>
+
+    <appender name="STDOUT" class="ch.qos.logback.core.ConsoleAppender">
+        <withJansi>true</withJansi>
+        <!-- encoders are assigned the type
+             ch.qos.logback.classic.encoder.PatternLayoutEncoder by default -->
+        <encoder>
+            <pattern>%cyan(%d{HH:mm:ss.SSS}) %gray([%thread]) %highlight(%-5level) %magenta(%logger{36}) - %msg%n
+            </pattern>
+        </encoder>
+    </appender>
+
+    <appender name="STDOUT-CAMUNDA" class="ch.qos.logback.core.ConsoleAppender">
+        <withJansi>true</withJansi>
+        <!-- encoders are assigned the type
+             ch.qos.logback.classic.encoder.PatternLayoutEncoder by default -->
+        <encoder>
+            <pattern>%cyan(%d{HH:mm:ss.SSS}) %gray([%thread]) %highlight(%-5level) %magenta(%logger{36}) %blue(context:[%X]) - %msg%n</pattern>
+        </encoder>
+    </appender>
+
+    <!--    <logger name="com.hazelcast" level="trace" />-->
+    <!--    <logger name="io.micronaut.data" level="trace" />-->
+    <!--    <logger name="com.zaxxer" level="trace" />-->
+    <logger name="formsmanager" level="debug"/>
+
+
+    <logger name="org.camunda" level="info" additivity="false">
+        <appender-ref ref="STDOUT-CAMUNDA"/>
+    </logger>
+
+<!--    <logger name="org.camunda.bpm.application" level="info" additivity="false">-->
+<!--&lt;!&ndash;        logs details for the deployed process application on the engine&ndash;&gt;-->
+<!--        <appender-ref ref="STDOUT-CAMUNDA"/>-->
+<!--    </logger>-->
+<!--    <logger name="org.camunda.bpm.container" level="info" additivity="false">-->
+<!--&lt;!&ndash;        logs container operations in the engine&ndash;&gt;-->
+<!--        <appender-ref ref="STDOUT-CAMUNDA"/>-->
+<!--    </logger>-->
+<!--    <logger name="org.camunda.bpm.engine.bpmn.behavior" level="info" additivity="false">-->
+<!--&lt;!&ndash;        logs operations performed on bpmn activities&ndash;&gt;-->
+<!--        <appender-ref ref="STDOUT-CAMUNDA"/>-->
+<!--    </logger>-->
+<!--    <logger name="org.camunda.bpm.engine.bpmn.parser" level="info" additivity="false">-->
+<!--&lt;!&ndash;        logs events that occur during the parsing of the bpmn models&ndash;&gt;-->
+<!--        <appender-ref ref="STDOUT-CAMUNDA"/>-->
+<!--    </logger>-->
+<!--    <logger name="org.camunda.bpm.engine.cfg" level="info" additivity="false">-->
+<!--&lt;!&ndash;        logs process engine configuration's initialization details&ndash;&gt;-->
+<!--        <appender-ref ref="STDOUT-CAMUNDA"/>-->
+<!--    </logger>-->
+<!--    <logger name="org.camunda.bpm.engine.cmd" level="info" additivity="false">-->
+<!--&lt;!&ndash;        logs the start and end of all commands that the engine performs&ndash;&gt;-->
+<!--        <appender-ref ref="STDOUT-CAMUNDA"/>-->
+<!--    </logger>-->
+<!--    <logger name="org.camunda.bpm.engine.cmmn.behavior" level="info" additivity="false">-->
+<!--        logs exceptions that occur during cmmn execution for incompatible cmmn behavior-->
+<!--        <appender-ref ref="STDOUT-CAMUNDA"/>-->
+<!--    </logger>-->
+<!--    <logger name="org.camunda.bpm.engine.cmmn.operation" level="info" additivity="false">-->
+<!--&lt;!&ndash;        logs exceptions during execution of cmmn operations&ndash;&gt;-->
+<!--        <appender-ref ref="STDOUT-CAMUNDA"/>-->
+<!--    </logger>-->
+<!--    <logger name="org.camunda.bpm.engine.cmmn.transformer" level="info" additivity="false">-->
+<!--&lt;!&ndash;        logs cmmn transformer operations performed by the engine&ndash;&gt;-->
+<!--        <appender-ref ref="STDOUT-CAMUNDA"/>-->
+<!--    </logger>-->
+<!--    <logger name="org.camunda.bpm.engine.context" level="info" additivity="false">-->
+<!--&lt;!&ndash;        command context logs including executing atomic operations and bpmn stack traces during exceptions&ndash;&gt;-->
+<!--        <appender-ref ref="STDOUT-CAMUNDA"/>-->
+<!--    </logger>-->
+<!--    <logger name="org.camunda.bpm.engine.core" level="info" additivity="false">-->
+<!--&lt;!&ndash;        logs engine's core operations, e.g. performing atomic operations&ndash;&gt;-->
+<!--        <appender-ref ref="STDOUT-CAMUNDA"/>-->
+<!--    </logger>-->
+<!--    <logger name="org.camunda.bpm.engine.dmn" level="info" additivity="false">-->
+<!--&lt;!&ndash;        logs exceptions that occur during decision evaluation&ndash;&gt;-->
+<!--        <appender-ref ref="STDOUT-CAMUNDA"/>-->
+<!--    </logger>-->
+<!--    <logger name="org.camunda.bpm.dmn.feel" level="info" additivity="false">-->
+<!--&lt;!&ndash;        logs events that occur during decision evaluation with the JUEL FEEL Engine&ndash;&gt;-->
+<!--        <appender-ref ref="STDOUT-CAMUNDA"/>-->
+<!--    </logger>-->
+<!--    <logger name="org.camunda.bpm.dmn.feel.scala" level="info" additivity="false">-->
+<!--&lt;!&ndash;        logs events that occur during decision evaluation with the Scala FEEL Engine&ndash;&gt;-->
+<!--        <appender-ref ref="STDOUT-CAMUNDA"/>-->
+<!--    </logger>-->
+<!--    <logger name="org.camunda.feel.FeelEngine" level="info" additivity="false">-->
+<!--&lt;!&ndash;        logs events that occur during expression evaluation with the Scala FEEL Engine&ndash;&gt;-->
+<!--        <appender-ref ref="STDOUT-CAMUNDA"/>-->
+<!--    </logger>-->
+<!--    <logger name="org.camunda.bpm.engine.externaltask" level="info" additivity="false">-->
+<!--&lt;!&ndash;        logger for the external task&ndash;&gt;-->
+<!--        <appender-ref ref="STDOUT-CAMUNDA"/>-->
+<!--    </logger>-->
+<!--    <logger name="org.camunda.bpm.engine.identity" level="info" additivity="false">-->
+<!--&lt;!&ndash;        logger of the IdentityService, for example logs information whether a user is locked&ndash;&gt;-->
+<!--        <appender-ref ref="STDOUT-CAMUNDA"/>-->
+<!--    </logger>-->
+<!--    <logger name="org.camunda.bpm.engine.incident" level="info" additivity="false">-->
+<!--&lt;!&ndash;        logs details during incident processing&ndash;&gt;-->
+<!--        <appender-ref ref="STDOUT-CAMUNDA"/>-->
+<!--    </logger>-->
+<!--    <logger name="org.camunda.bpm.engine.jobexecutor" level="info" additivity="false">-->
+<!--&lt;!&ndash;        logs operations performed by the job executor, such as job acquisition&ndash;&gt;-->
+<!--        <appender-ref ref="STDOUT-CAMUNDA"/>-->
+<!--    </logger>-->
+<!--    <logger name="org.camunda.bpm.engine.metrics" level="info" additivity="false">-->
+<!--&lt;!&ndash;        logs details regarding the engine metrics&ndash;&gt;-->
+<!--        <appender-ref ref="STDOUT-CAMUNDA"/>-->
+<!--    </logger>-->
+<!--    <logger name="org.camunda.bpm.engine.migration" level="info" additivity="false">-->
+<!--&lt;!&ndash;        logs exceptions that occur during process migration&ndash;&gt;-->
+<!--        <appender-ref ref="STDOUT-CAMUNDA"/>-->
+<!--    </logger>-->
+<!--    <logger name="org.camunda.bpm.engine.persistence" level="info" additivity="false">-->
+<!--&lt;!&ndash;        logs the identity of all entities that the engine inserts/deletes/updates in the database&ndash;&gt;-->
+<!--        <appender-ref ref="STDOUT-CAMUNDA"/>-->
+<!--    </logger>-->
+<!--    <logger name="org.camunda.bpm.engine.plugin.admin" level="info" additivity="false">-->
+<!--&lt;!&ndash;        logs authorization details for administrators if AdministratorAuthorizationPlugin is enabled&ndash;&gt;-->
+<!--        <appender-ref ref="STDOUT-CAMUNDA"/>-->
+<!--    </logger>-->
+<!--    <logger name="org.camunda.bpm.engine.pvm" level="info" additivity="false">-->
+<!--&lt;!&ndash;        logs the Process Virtual Machine (PVM) operations, e.g. entering/leaving an activity, creating/destroying a scope&ndash;&gt;-->
+<!--        <appender-ref ref="STDOUT-CAMUNDA"/>-->
+<!--    </logger>-->
+<!--    <logger name="org.camunda.bpm.engine.rest.exception" level="info" additivity="false">-->
+<!--&lt;!&ndash;        logs the exceptions thrown in the REST API&ndash;&gt;-->
+<!--        <appender-ref ref="STDOUT-CAMUNDA"/>-->
+<!--    </logger>-->
+<!--    <logger name="org.camunda.bpm.engine.script" level="info" additivity="false">-->
+<!--&lt;!&ndash;        logs script processing details, e.g. evaluating, compiling&ndash;&gt;-->
+<!--        <appender-ref ref="STDOUT-CAMUNDA"/>-->
+<!--    </logger>-->
+<!--    <logger name="org.camunda.bpm.engine.security" level="info" additivity="false">-->
+<!--&lt;!&ndash;        logs exceptions that occur during password hashing&ndash;&gt;-->
+<!--        <appender-ref ref="STDOUT-CAMUNDA"/>-->
+<!--    </logger>-->
+<!--    <logger name="org.camunda.bpm.engine.test" level="info" additivity="false">-->
+<!--&lt;!&ndash;        logger used in the engine tests&ndash;&gt;-->
+<!--        <appender-ref ref="STDOUT-CAMUNDA"/>-->
+<!--    </logger>-->
+<!--    <logger name="org.camunda.bpm.engine.tx" level="info" additivity="false">-->
+<!--&lt;!&ndash;        logs transaction details, e.g. commits and rollbacks&ndash;&gt;-->
+<!--        <appender-ref ref="STDOUT-CAMUNDA"/>-->
+<!--    </logger>-->
+<!--    <logger name="org.camunda.bpm.engine.util" level="info" additivity="false">-->
+<!--&lt;!&ndash;        logs engine utility operations like xml parsing, reading streams, class loading issues, parsing intervals/duration, etc.&ndash;&gt;-->
+<!--        <appender-ref ref="STDOUT-CAMUNDA"/>-->
+<!--    </logger>-->
+
+
+    <root level="info">
+        <appender-ref ref="STDOUT"/>
+    </root>
+</configuration>

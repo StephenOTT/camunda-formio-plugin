@@ -1,0 +1,11 @@
+camunda:
+  bpm:
+    admin-user:
+      id: admin
+      password: admin
+    history-level: full
+    job-execution:
+      deployment-aware: false
+spring:
+  jersey:
+    application-path: /rest
