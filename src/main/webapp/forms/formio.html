@@ -4,26 +4,33 @@
 
     <div id="formio"></div>
 
-                                <script cam-script type="text/form-script">
+                                    <script cam-script type="text/form-script">
 <!--    <script>-->
-        let startFormVariableName = 'startFormSubmission';
+        let submissionSuffix = '_submission'
+        let startFormVariableName = 'startForm' + submissionSuffix;
 
         function getSchema(callback) {
             inject(['$http', 'Uri', function ($http, Uri) {
-                let deploymentId = camForm.options.deploymentId
+                let processDefId = camForm.processDefinitionId;
 
-                $http.get(Uri.appUri('engine://engine/:engine/deployment/' + deploymentId + '/resources')).then(function (response) {
-                    let formName = getParameterByName('app', camForm.options.formUrl);
-                    let formResource = response.data.find(i => i.name === formName);
+                $http.get(Uri.appUri('engine://engine/:engine/process-definition/' + processDefId)).then(function (response) {
+                    return response.data.deploymentId
 
-                    if (formResource === undefined) {
-                        console.error('Unable to find resource with name: ' + formName);
-                    }
-                    return {deploymentId: deploymentId, resourceId: formResource.id}
-                }).then(function (ids) {
-                    $http.get(Uri.appUri('engine://engine/:engine/deployment/' + ids.deploymentId + '/resources/' + ids.resourceId + '/data')).then(function (response) {
-                        debugger;
-                        return callback(response.data)
+                }).then(function (deploymentId) {
+                    $http.get(Uri.appUri('engine://engine/:engine/deployment/' + deploymentId + '/resources')).then(function (response) {
+                        let formName = getParameterByName('app', camForm.options.formUrl);
+                        let formResource = response.data.find(i => i.name === formName);
+
+                        if (formResource === undefined) {
+                            console.error('Unable to find resource with name: ' + formName);
+                        }
+                        return {deploymentId: deploymentId, resourceId: formResource.id}
+
+                    }).then(function (ids) {
+                        $http.get(Uri.appUri('engine://engine/:engine/deployment/' + ids.deploymentId + '/resources/' + ids.resourceId + '/data')).then(function (response) {
+                            debugger;
+                            return callback(response.data)
+                        });
                     });
                 });
             }]);
@@ -64,8 +71,9 @@
                                 await new Promise(function (resolve, reject) {
                                     form.executeSubmit().then(res => {
                                             var variableManager = camForm.variableManager;
+                                            debugger;
                                             variableManager.createVariable({
-                                                name: (camForm.taskId != null) ? camForm.taskId : startFormVariableName,
+                                                name: (camForm.taskId != null) ? camForm.taskId + submissionSuffix : startFormVariableName,
                                                 type: 'Json',
                                                 value: res,
                                                 isDirty: true
