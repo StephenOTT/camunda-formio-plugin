@@ -4,15 +4,15 @@
 
     <div id="formio"></div>
 
-                                        <script cam-script type="text/form-script">
-<!--    <script>-->
+<!--    <script cam-script type="text/form-script">-->
+    <script>
         let submissionSuffix = '_submission'
         let startFormVariableName = 'startForm' + submissionSuffix;
         let formLocationDeploymentParam = 'deployment'
         let formLocationLocalPathParam = "path"
 
-        async function getSchema() {
-            return await new Promise(function (resolve, reject) {
+        function getSchema(callback) {
+            // return new Promise(resolve => {
                 inject(['$http', 'Uri', function ($http, Uri) {
                     let processDefId = camForm.processDefinitionId;
 
@@ -51,20 +51,20 @@
 
                             }).then(function (ids) {
                                 $http.get(Uri.appUri('engine://engine/:engine/deployment/' + ids.deploymentId + '/resources/' + ids.resourceId + '/data')).then(function (response) {
-                                    resolve(response.data)
+                                    callback(response.data)
                                 });
                             });
 
                         } else if (details.formType === formLocationLocalPathParam) {
-                            resolve($.getJSON(details.formName))
+                            callback($.getJSON(details.formName))
 
                         } else {
                             console.error("Unknown form type was provided: " + details.formType)
-                            reject()
                         }
                     });
                 }]);
-            });
+            // })
+
         }
 
         function getParameterByName(name, url) {
@@ -82,68 +82,84 @@
             console.log("Camunda-Formio Submission Error")
         });
 
+        camForm.on('variables-fetched', function ()
+        // THIS is getting called before the variables are actually fetched
+            let firstSubmit = true;
+            debugger;
+                Formio.createForm(document.getElementById('formio'), $scope.formioSchema)
+                    .then(function (form) {
+                        form.nosubmit = true;
+                        debugger;
+                        form.submission = {
+                            data: {
+                                firstName: "chris"
+                            }
+                        }
+
+                        camForm.on('submit', function (evt) {
+                            evt.submitPrevented = firstSubmit
+                            if (firstSubmit) {
+                                result()
+                            }
+                            firstSubmit = true
+
+                            async function result() {
+                                await new Promise(function (resolve, reject) {
+                                    form.executeSubmit().then(res => {
+                                            var variableManager = camForm.variableManager;
+
+                                            variableManager.createVariable({
+                                                name: (camForm.taskId != null) ? camForm.taskId + submissionSuffix : startFormVariableName,
+                                                type: 'Json',
+                                                value: res,
+                                                isDirty: true
+                                            });
+                                            firstSubmit = false
+                                            $scope.complete()
+                                            resolve()
+                                        }, err => {
+                                            evt.submitPrevented = true
+                                            resolve()
+                                        }
+                                    )
+                                });
+                            }
+                        });
+                    });
+
+        });
+
+        // function setupVariables(schema){
+        //         let fetchVariableKey = 'fetchVariable';
+        //         let vm = camForm.variableManager;
+        //
+        //         let components = FormioUtils.flattenComponents(schema.components);
+        //         let fieldsWithFetch = _.filter(components, function (o) {
+        //             return _.has(o.properties, fetchVariableKey)
+        //         });
+        //         _.forEach(fieldsWithFetch, function (o) {
+        //             // vm.fetchVariable('firstName')
+        //             // vm.fetchVariable(o.properties[fetchVariableKey])-->
+        //         });
+        // }
+
         camForm.on('form-loaded', function (evt, res) {
-            let fetchVariableKey = 'fetchVariable';
-            let vm = camForm.variableManager;
+            getSchema(schema => {
+                // This is currently getting skipped, and it jumps to end, so the variable is never loaded within the scope of this event... :(
+                let fetchVariableKey = 'fetchVariable';
+                let vm = camForm.variableManager;
 
-            // --> this needs to run blocking.. but is currnetly not working
-            (async () => {
-                let schema = await getSchema();
-
-                debugger;
                 let components = FormioUtils.flattenComponents(schema.components);
                 let fieldsWithFetch = _.filter(components, function (o) {
                     return _.has(o.properties, fetchVariableKey)
                 });
                 _.forEach(fieldsWithFetch, function (o) {
-                    debugger;
-                    vm.fetchVariable(o.properties[fetchVariableKey].value)
+                    vm.fetchVariable(o.properties[fetchVariableKey])-->
                 });
-
                 $scope.formioSchema = schema
-            })().catch(e => {
-                // Deal with the fact the chain failed
             })
 
-        });
 
-        camForm.on('variables-fetched', function () {
-            debugger;
-            let firstSubmit = true;
-            Formio.createForm(document.getElementById('formio'), $scope.formioSchema)
-                .then(function (form) {
-                    form.nosubmit = true;
-
-                    camForm.on('submit', function (evt) {
-                        evt.submitPrevented = firstSubmit
-                        if (firstSubmit) {
-                            result()
-                        }
-                        firstSubmit = true
-
-                        async function result() {
-                            await new Promise(function (resolve, reject) {
-                                form.executeSubmit().then(res => {
-                                        var variableManager = camForm.variableManager;
-
-                                        variableManager.createVariable({
-                                            name: (camForm.taskId != null) ? camForm.taskId + submissionSuffix : startFormVariableName,
-                                            type: 'Json',
-                                            value: res,
-                                            isDirty: true
-                                        });
-                                        firstSubmit = false
-                                        $scope.complete()
-                                        resolve()
-                                    }, err => {
-                                        evt.submitPrevented = true
-                                        resolve()
-                                    }
-                                )
-                            });
-                        }
-                    });
-                });
         });
     </script>
 </form>
