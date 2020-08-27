@@ -20,13 +20,13 @@ Allows you to configure start-event forms and user-task forms with a `formkey` t
 
 Configuring a Start Form:
 
-`embedded:/forms/formio.html?app=MyStartForm.json`
+`embedded:/forms/formio.html?deployment=MyStartForm.json`
 
 >![start form configuration](./doc/Config-Start.png)
 
 Configuring a User Task:
 
-`embedded:/forms/formio.html?app=MyUT1.json`
+`embedded:/forms/formio.html?deployment=MyUT1.json`
 
 >![start form configuration](./doc/Config-UT1.png)
 

@@ -1,11 +1,16 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <bpmn:definitions xmlns:bpmn="http://www.omg.org/spec/BPMN/20100524/MODEL" xmlns:bpmndi="http://www.omg.org/spec/BPMN/20100524/DI" xmlns:dc="http://www.omg.org/spec/DD/20100524/DC" xmlns:camunda="http://camunda.org/schema/1.0/bpmn" xmlns:di="http://www.omg.org/spec/DD/20100524/DI" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" id="Definitions_1rhin5k" targetNamespace="http://bpmn.io/schema/bpmn" exporter="Camunda Modeler" exporterVersion="3.7.0">
   <bpmn:process id="someProcess1" name="Some Process 1" isExecutable="true">
-    <bpmn:startEvent id="Event_0emfvgy" camunda:formKey="embedded:/forms/formio.html?app=MyStartForm.json">
+    <bpmn:startEvent id="Event_0emfvgy" camunda:formKey="embedded:/forms/formio.html?deployment=MyStartForm.json">
+      <bpmn:extensionElements>
+        <camunda:executionListener event="end">
+          <camunda:script scriptFormat="javascript">execution.setVariable('firstName', 'steve')</camunda:script>
+        </camunda:executionListener>
+      </bpmn:extensionElements>
       <bpmn:outgoing>Flow_1ax32ut</bpmn:outgoing>
     </bpmn:startEvent>
     <bpmn:sequenceFlow id="Flow_1ax32ut" sourceRef="Event_0emfvgy" targetRef="Activity_1xq7c62" />
-    <bpmn:userTask id="Activity_1xq7c62" name="UT1" camunda:formKey="embedded:/forms/formio.html?app=MyUT1.json">
+    <bpmn:userTask id="Activity_1xq7c62" name="UT1" camunda:formKey="embedded:/forms/formio.html?deployment=MyUT1.json">
       <bpmn:incoming>Flow_1ax32ut</bpmn:incoming>
       <bpmn:outgoing>Flow_18xtnen</bpmn:outgoing>
     </bpmn:userTask>
