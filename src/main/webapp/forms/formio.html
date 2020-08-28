@@ -1,18 +1,33 @@
 <form role="form" id="task-form-formio">
+    <!--    TODO make the stylesheets configured from the build so people can change what CSS to load-->
     <link rel="stylesheet" href="https://unpkg.com/formiojs@latest/dist/formio.full.min.css">
     <link rel="stylesheet" href="https://stackpath.bootstrapcdn.com/font-awesome/4.7.0/css/font-awesome.min.css">
 
+    <!-- TODO is it better to have the formio div in the <form> element or outside of it?   -->
     <div id="formio"></div>
 
-<!--    <script cam-script type="text/form-script">-->
+<!--        <script cam-script type="text/form-script">-->
     <script>
         let submissionSuffix = '_submission'
         let startFormVariableName = 'startForm' + submissionSuffix;
         let formLocationDeploymentParam = 'deployment'
         let formLocationLocalPathParam = "path"
+        let fetchVariableKey = 'fetchVariable';
+        let formioDivId = "formio"
 
-        function getSchema(callback) {
-            // return new Promise(resolve => {
+        function getParameterByName(name, url) {
+            if (!url) url = window.location.href;
+            name = name.replace(/[\[\]]/g, '\\$&');
+            const regex = new RegExp('[?&]' + name + '(=([^&#]*)|&|#|$)'),
+                results = regex.exec(url);
+            if (!results) return null;
+            if (!results[2]) return '';
+            return decodeURIComponent(results[2].replace(/\+/g, ' '));
+        }
+
+
+        function getSchema() {
+            return new Promise(resolve => {
                 inject(['$http', 'Uri', function ($http, Uri) {
                     let processDefId = camForm.processDefinitionId;
 
@@ -51,52 +66,91 @@
 
                             }).then(function (ids) {
                                 $http.get(Uri.appUri('engine://engine/:engine/deployment/' + ids.deploymentId + '/resources/' + ids.resourceId + '/data')).then(function (response) {
-                                    callback(response.data)
+                                    resolve(response.data)
                                 });
                             });
 
                         } else if (details.formType === formLocationLocalPathParam) {
-                            callback($.getJSON(details.formName))
+                            resolve($.getJSON(details.formName))
 
                         } else {
                             console.error("Unknown form type was provided: " + details.formType)
                         }
                     });
                 }]);
-            // })
-
+            })
         }
 
-        function getParameterByName(name, url) {
-            if (!url) url = window.location.href;
-            name = name.replace(/[\[\]]/g, '\\$&');
-            const regex = new RegExp('[?&]' + name + '(=([^&#]*)|&|#|$)'),
-                results = regex.exec(url);
-            if (!results) return null;
-            if (!results[2]) return '';
-            return decodeURIComponent(results[2].replace(/\+/g, ' '));
-        }
-
+        // TODO review if this is even working / does it do anything?
         camForm.on('submit-error', function (evt, res) {
             evt.submitPrevented = false;
             console.log("Camunda-Formio Submission Error")
         });
 
-        camForm.on('variables-fetched', function ()
-        // THIS is getting called before the variables are actually fetched
-            let firstSubmit = true;
-            debugger;
-                Formio.createForm(document.getElementById('formio'), $scope.formioSchema)
+
+        function getVariables(varNames) {
+            return new Promise(resolve => {
+                if (camForm.taskId != null) {
+                    inject(['$http', 'Uri', function ($http, Uri) {
+                        let taskId = camForm.taskId;
+
+                        let variables = {}
+                        let promises = []
+                        _.forEach(varNames, function (varName) {
+                            let promise = $http.get(Uri.appUri('engine://engine/:engine/task/' + taskId + '/variables/' + varName))
+                            promises.push(promise)
+                            promise.then(response => {
+                                variables[varName] = response.data.value
+                            })
+                        })
+                        Promise.all(promises).then(function () {
+                            resolve(variables)
+                        })
+                    }])
+                } else {
+                    resolve({})
+                }
+
+            })
+        }
+
+        camForm.on('form-loaded', function () {
+            getSchema().then(schema => {
+                // TODO Move the below into its own function
+                let components = FormioUtils.flattenComponents(schema.components);
+                let fieldsWithFetch = _.filter(components, function (o) {
+                    return _.has(o.properties, fetchVariableKey)
+                });
+
+                let varNames = []
+                _.forEach(fieldsWithFetch, function (o) {
+                    varNames.push(o.properties[fetchVariableKey])
+                });
+
+                return {schema: schema, varNames: varNames}
+
+            }).then(details => {
+                return getVariables(details.varNames).then(variables => {
+                    details.variables = variables
+                    return details
+                })
+
+            }).then(details => {
+                let firstSubmit = true;
+                // TODO add a loading text
+                // TODO add a gloabl try/catch for any errors that will then fail the load of the formio form. There is a callback/function that can be used to trigger errors for formio
+                Formio.createForm(document.getElementById(formioDivId), details.schema)
                     .then(function (form) {
                         form.nosubmit = true;
-                        debugger;
+
+                        // TODO Review if this is best way? Can the Default Value JS override this value (so the js parsing can do a read on previous submissions...?)?
                         form.submission = {
-                            data: {
-                                firstName: "chris"
-                            }
+                            data: details.variables
                         }
 
                         camForm.on('submit', function (evt) {
+                            // TODO Clean this section up..
+                            // TODO review if better way to prevent the submission from moving forward.. Was only way i found based on forum post...
                             evt.submitPrevented = firstSubmit
                             if (firstSubmit) {
                                 result()
@@ -126,40 +180,7 @@
                             }
                         });
                     });
-
-        });
-
-        // function setupVariables(schema){
-        //         let fetchVariableKey = 'fetchVariable';
-        //         let vm = camForm.variableManager;
-        //
-        //         let components = FormioUtils.flattenComponents(schema.components);
-        //         let fieldsWithFetch = _.filter(components, function (o) {
-        //             return _.has(o.properties, fetchVariableKey)
-        //         });
-        //         _.forEach(fieldsWithFetch, function (o) {
-        //             // vm.fetchVariable('firstName')
-        //             // vm.fetchVariable(o.properties[fetchVariableKey])-->
-        //         });
-        // }
-
-        camForm.on('form-loaded', function (evt, res) {
-            getSchema(schema => {
-                // This is currently getting skipped, and it jumps to end, so the variable is never loaded within the scope of this event... :(
-                let fetchVariableKey = 'fetchVariable';
-                let vm = camForm.variableManager;
-
-                let components = FormioUtils.flattenComponents(schema.components);
-                let fieldsWithFetch = _.filter(components, function (o) {
-                    return _.has(o.properties, fetchVariableKey)
-                });
-                _.forEach(fieldsWithFetch, function (o) {
-                    vm.fetchVariable(o.properties[fetchVariableKey])-->
-                });
-                $scope.formioSchema = schema
             })
-
-
         });
     </script>
 </form>
