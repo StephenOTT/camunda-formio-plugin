@@ -3,7 +3,7 @@
     {
       "type": "textfield",
       "key": "firstName",
-      "label": "First Name - Loaded from Deployment",
+      "label": "First Name - Loaded from Path",
       "placeholder": "Enter your first name.",
       "input": true,
       "validate": {

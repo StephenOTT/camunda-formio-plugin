@@ -1,95 +1,214 @@
-<form role="form">
-    <link rel="stylesheet" href="https://unpkg.com/formiojs@latest/dist/formio.full.min.css">
-    <link rel="stylesheet" href="https://stackpath.bootstrapcdn.com/font-awesome/4.7.0/css/font-awesome.min.css">
+<form role="form" id="task-form-formio">
+    <!--    TODO make the stylesheets configured from the build so people can change what CSS to load-->
+    <link rel="stylesheet" href="/forms/formio.full-4.11.3.min.css">
+    <link rel="stylesheet" href="/forms/font-awesome-4.7.0/css/font-awesome.min.css">
 
+    <!-- TODO is it better to have the formio div in the <form> element or outside of it?   -->
     <div id="formio"></div>
 
-                                    <script cam-script type="text/form-script">
+    <script cam-script type="text/form-script">
 <!--    <script>-->
         let submissionSuffix = '_submission'
         let startFormVariableName = 'startForm' + submissionSuffix;
+        let formLocationDeploymentParam = 'deployment'
+        let formLocationLocalPathParam = "path"
+        let fetchVariableKey = 'fetchVariable';
+        let formioDivId = "formio"
+        let submitAsTransientVariableParam = "transient"
+        let submitAsTransientVariableDefault = false
+        let submissionVariableNameParam = "var"
 
-        function getSchema(callback) {
-            inject(['$http', 'Uri', function ($http, Uri) {
-                let processDefId = camForm.processDefinitionId;
-
-                $http.get(Uri.appUri('engine://engine/:engine/process-definition/' + processDefId)).then(function (response) {
-                    return response.data.deploymentId
-
-                }).then(function (deploymentId) {
-                    $http.get(Uri.appUri('engine://engine/:engine/deployment/' + deploymentId + '/resources')).then(function (response) {
-                        let formName = getParameterByName('app', camForm.options.formUrl);
-                        let formResource = response.data.find(i => i.name === formName);
-
-                        if (formResource === undefined) {
-                            console.error('Unable to find resource with name: ' + formName);
-                        }
-                        return {deploymentId: deploymentId, resourceId: formResource.id}
-
-                    }).then(function (ids) {
-                        $http.get(Uri.appUri('engine://engine/:engine/deployment/' + ids.deploymentId + '/resources/' + ids.resourceId + '/data')).then(function (response) {
-                            debugger;
-                            return callback(response.data)
-                        });
-                    });
-                });
-            }]);
-
-            function getParameterByName(name, url) {
-                if (!url) url = window.location.href;
-                name = name.replace(/[\[\]]/g, '\\$&');
-                var regex = new RegExp('[?&]' + name + '(=([^&#]*)|&|#|$)'),
-                    results = regex.exec(url);
-                if (!results) return null;
-                if (!results[2]) return '';
-                return decodeURIComponent(results[2].replace(/\+/g, ' '));
-            }
+        function getParameterByName(name, url) {
+            if (!url) url = window.location.href;
+            name = name.replace(/[\[\]]/g, '\\$&');
+            const regex = new RegExp('[?&]' + name + '(=([^&#]*)|&|#|$)'),
+                results = regex.exec(url);
+            if (!results) return null;
+            if (!results[2]) return '';
+            return decodeURIComponent(results[2].replace(/\+/g, ' '));
         }
 
+        function getSchema() {
+            return new Promise(resolve => {
+                inject(['$http', 'Uri', function ($http, Uri) {
+                    let processDefId = camForm.processDefinitionId;
+
+                    $http.get(Uri.appUri('engine://engine/:engine/process-definition/' + processDefId)).then(function (response) {
+
+                        let formNameDeployment = getParameterByName(formLocationDeploymentParam, camForm.options.formUrl);
+                        let formLocDeployment = function () {
+                            return formNameDeployment !== null;
+                        }
+
+                        let formNamePath = getParameterByName(formLocationLocalPathParam, camForm.options.formUrl);
+                        let formLocPath = function () {
+                            return formNamePath !== null;
+                        }
+
+                        if (formLocDeployment() === false && formLocPath() === false) {
+                            console.error("No valid form json location was found for formio.")
+                        }
+
+                        let formName = formLocDeployment() === true ? formNameDeployment : formNamePath
+                        let formType = formLocDeployment() === true ? formLocationDeploymentParam : formLocationLocalPathParam
+
+                        return {deploymentId: response.data.deploymentId, formName: formName, formType: formType}
+
+                    }).then(function (details) {
+
+                        if (details.formType === formLocationDeploymentParam) {
+                            $http.get(Uri.appUri('engine://engine/:engine/deployment/' + details.deploymentId + '/resources')).then(function (response) {
+                                let formResource = response.data.find(i => i.name === details.formName);
+
+                                if (formResource === undefined) {
+                                    console.error('Unable to find resource with name: ' + details.formName);
+                                }
+
+                                return {deploymentId: details.deploymentId, resourceId: formResource.id}
+
+                            }).then(function (ids) {
+                                $http.get(Uri.appUri('engine://engine/:engine/deployment/' + ids.deploymentId + '/resources/' + ids.resourceId + '/data')).then(function (response) {
+                                    resolve(response.data)
+                                });
+                            });
+
+                        } else if (details.formType === formLocationLocalPathParam) {
+                            resolve($.getJSON(details.formName))
+
+                        } else {
+                            console.error("Unknown form type was provided: " + details.formType)
+                        }
+                    });
+                }]);
+            })
+        }
+
+        // TODO review if this is even working / does it do anything?
         camForm.on('submit-error', function (evt, res) {
             evt.submitPrevented = false;
             console.log("Camunda-Formio Submission Error")
         });
 
 
-        camForm.on('variables-fetched', function () {
-            var firstSubmit = true
-            getSchema(function (schema) {
-                debugger;
-                Formio.createForm(document.getElementById('formio'), schema)
-                    .then(function (form) {
-                        form.nosubmit = true;
+        function getVariables(varNames) {
+            return new Promise(resolve => {
+                if (camForm.taskId != null) {
+                    inject(['$http', 'Uri', function ($http, Uri) {
+                        let taskId = camForm.taskId;
 
-                        camForm.on('submit', function (evt) {
-                            evt.submitPrevented = firstSubmit
-                            if (firstSubmit) {
-                                result()
-                            }
-                            firstSubmit = true
+                        let variables = {}
+                        let promises = []
 
-                            async function result() {
-                                await new Promise(function (resolve, reject) {
-                                    form.executeSubmit().then(res => {
-                                            var variableManager = camForm.variableManager;
-                                            debugger;
-                                            variableManager.createVariable({
-                                                name: (camForm.taskId != null) ? camForm.taskId + submissionSuffix : startFormVariableName,
-                                                type: 'Json',
-                                                value: res,
-                                                isDirty: true
-                                            });
-                                            firstSubmit = false
-                                            $scope.complete()
-                                            resolve()
-                                        }, err => {
-                                            evt.submitPrevented = true
-                                            resolve()
-                                        }
-                                    )
-                                });
+                        _.forEach(varNames, function (varName) {
+                            if (!variables.hasOwnProperty(varName)) {
+                                let promise = $http.get(Uri.appUri('engine://engine/:engine/task/' + taskId + '/variables/' + varName), {params: {deserializeValue: false}})
+                                promises.push(promise)
+                                promise.then(response => {
+
+                                    if (response.data.type === 'Json') {
+                                        response.data.value = JSON.parse(response.data.value)
+                                    }
+                                    variables[varName] = response.data.value
+                                })
                             }
+
+                        })
+                        Promise.all(promises).then(function () {
+                            resolve(variables)
+                        })
+                    }])
+                } else {
+                    resolve({})
+                }
+
+            })
+        }
+
+        camForm.on('form-loaded', function () {
+            getSchema().then(schema => {
+            debugger;
+                // TODO Move the below into its own function
+                let components = FormioUtils.flattenComponents(schema.components);
+                let fieldsWithFetch = _.filter(components, function (o) {
+                    return _.has(o.properties, fetchVariableKey)
+                });
+
+                let varNames = []
+                _.forEach(fieldsWithFetch, function (o) {
+                    varNames.push(o.properties[fetchVariableKey])
+                });
+
+                return {schema: schema, varNames: varNames}
+
+            }).then(details => {
+                return getVariables(details.varNames).then(variables => {
+                    //TODO should variables be stored in camForm or just the scope?
+                    // This is done so we can access the variables from formio for default value population
+                    $scope.camForm.formioVariables = variables
+                    return details
+                })
+
+            }).then(details => {
+                let firstSubmit = true;
+                // TODO add a loading text
+                try {
+                    Formio.createForm(document.getElementById(formioDivId), details.schema)
+                        .then(function (form) {
+                            form.nosubmit = true;
+
+                            let customSubmissionVariableName = getParameterByName(submissionVariableNameParam, camForm.options.formUrl);
+                            let transientVariableParamValue = getParameterByName(submitAsTransientVariableParam, camForm.options.formUrl);
+
+                            camForm.on('submit', function (evt) {
+                                // TODO Clean this section up..
+                                // TODO review if better way to prevent the submission from moving forward.. Was only way i found based on forum post...
+                                // ISSUE: https://forum.camunda.org/t/evt-submitprevented-true-any-way-to-hide-the-default-warning/3875
+                                evt.submitPrevented = firstSubmit
+                                if (firstSubmit) {
+                                    result()
+                                }
+                                firstSubmit = true
+
+                                async function result() {
+                                    await new Promise(function (resolve, reject) {
+                                        form.executeSubmit().then(res => {
+                                                var variableManager = camForm.variableManager;
+
+                                                let submissionVariable = {
+                                                    name: (camForm.taskId != null) ? camForm.taskId + submissionSuffix : startFormVariableName,
+                                                    type: 'Json',
+                                                    value: res,
+                                                    valueInfo: {transient: submitAsTransientVariableDefault},
+                                                    isDirty: true
+                                                }
+
+                                                if (customSubmissionVariableName != null) {
+                                                    submissionVariable.name = customSubmissionVariableName
+                                                }
+
+                                                if (transientVariableParamValue != null) {
+                                                    if (transientVariableParamValue === 'true') {
+                                                        submissionVariable.valueInfo = {transient: true}
+                                                    }
+                                                }
+
+                                                variableManager.createVariable(submissionVariable);
+                                                firstSubmit = false
+                                                $scope.complete()
+                                                resolve()
+
+                                            }, err => {
+                                                evt.submitPrevented = true
+                                                resolve()
+                                            }
+                                        )
+                                    });
+                                }
+                            });
                         });
-                    });
+                } catch (e) {
+                    log.error(e)
+                }
             })
         });
     </script>

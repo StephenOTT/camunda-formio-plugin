@@ -2,7 +2,7 @@
   "display": "form",
   "components": [
     {
-      "label": "First Name - Loaded from Deployment",
+      "label": "First Name - Loaded from Path",
       "tableView": true,
       "customDefaultValue": "let variables = angular.element('#task-form-formio').scope().camForm.formioVariables\n\nvalue = variables.postProcessed_submission.data.firstName",
       "key": "firstName",
