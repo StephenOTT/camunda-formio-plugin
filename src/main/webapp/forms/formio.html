@@ -1,19 +1,22 @@
 <form role="form" id="task-form-formio">
     <!--    TODO make the stylesheets configured from the build so people can change what CSS to load-->
-    <link rel="stylesheet" href="https://unpkg.com/formiojs@latest/dist/formio.full.min.css">
-    <link rel="stylesheet" href="https://stackpath.bootstrapcdn.com/font-awesome/4.7.0/css/font-awesome.min.css">
+    <link rel="stylesheet" href="/forms/formio.full-4.11.3.min.css">
+    <link rel="stylesheet" href="/forms/font-awesome-4.7.0/css/font-awesome.min.css">
 
     <!-- TODO is it better to have the formio div in the <form> element or outside of it?   -->
     <div id="formio"></div>
 
-<!--        <script cam-script type="text/form-script">-->
-    <script>
+    <script cam-script type="text/form-script">
+<!--    <script>-->
         let submissionSuffix = '_submission'
         let startFormVariableName = 'startForm' + submissionSuffix;
         let formLocationDeploymentParam = 'deployment'
         let formLocationLocalPathParam = "path"
         let fetchVariableKey = 'fetchVariable';
         let formioDivId = "formio"
+        let submitAsTransientVariableParam = "transient"
+        let submitAsTransientVariableDefault = false
+        let submissionVariableNameParam = "var"
 
         function getParameterByName(name, url) {
             if (!url) url = window.location.href;
@@ -24,7 +27,6 @@
             if (!results[2]) return '';
             return decodeURIComponent(results[2].replace(/\+/g, ' '));
         }
-
 
         function getSchema() {
             return new Promise(resolve => {
@@ -96,12 +98,20 @@
 
                         let variables = {}
                         let promises = []
+
                         _.forEach(varNames, function (varName) {
-                            let promise = $http.get(Uri.appUri('engine://engine/:engine/task/' + taskId + '/variables/' + varName))
-                            promises.push(promise)
-                            promise.then(response => {
-                                variables[varName] = response.data.value
-                            })
+                            if (!variables.hasOwnProperty(varName)) {
+                                let promise = $http.get(Uri.appUri('engine://engine/:engine/task/' + taskId + '/variables/' + varName), {params: {deserializeValue: false}})
+                                promises.push(promise)
+                                promise.then(response => {
+
+                                    if (response.data.type === 'Json') {
+                                        response.data.value = JSON.parse(response.data.value)
+                                    }
+                                    variables[varName] = response.data.value
+                                })
+                            }
+
                         })
                         Promise.all(promises).then(function () {
                             resolve(variables)
@@ -116,6 +126,7 @@
 
         camForm.on('form-loaded', function () {
             getSchema().then(schema => {
+            debugger;
                 // TODO Move the below into its own function
                 let components = FormioUtils.flattenComponents(schema.components);
                 let fieldsWithFetch = _.filter(components, function (o) {
@@ -131,55 +142,73 @@
 
             }).then(details => {
                 return getVariables(details.varNames).then(variables => {
-                    details.variables = variables
+                    //TODO should variables be stored in camForm or just the scope?
+                    // This is done so we can access the variables from formio for default value population
+                    $scope.camForm.formioVariables = variables
                     return details
                 })
 
             }).then(details => {
                 let firstSubmit = true;
                 // TODO add a loading text
-                // TODO add a gloabl try/catch for any errors that will then fail the load of the formio form. There is a callback/function that can be used to trigger errors for formio
-                Formio.createForm(document.getElementById(formioDivId), details.schema)
-                    .then(function (form) {
-                        form.nosubmit = true;
+                try {
+                    Formio.createForm(document.getElementById(formioDivId), details.schema)
+                        .then(function (form) {
+                            form.nosubmit = true;
 
-                        // TODO Review if this is best way? Can the Default Value JS override this value (so the js parsing can do a read on previous submissions...?)?
-                        form.submission = {
-                            data: details.variables
-                        }
+                            let customSubmissionVariableName = getParameterByName(submissionVariableNameParam, camForm.options.formUrl);
+                            let transientVariableParamValue = getParameterByName(submitAsTransientVariableParam, camForm.options.formUrl);
 
-                        camForm.on('submit', function (evt) {
-                            // TODO Clean this section up..
-                            // TODO review if better way to prevent the submission from moving forward.. Was only way i found based on forum post...
-                            evt.submitPrevented = firstSubmit
-                            if (firstSubmit) {
-                                result()
-                            }
-                            firstSubmit = true
+                            camForm.on('submit', function (evt) {
+                                // TODO Clean this section up..
+                                // TODO review if better way to prevent the submission from moving forward.. Was only way i found based on forum post...
+                                // ISSUE: https://forum.camunda.org/t/evt-submitprevented-true-any-way-to-hide-the-default-warning/3875
+                                evt.submitPrevented = firstSubmit
+                                if (firstSubmit) {
+                                    result()
+                                }
+                                firstSubmit = true
 
-                            async function result() {
-                                await new Promise(function (resolve, reject) {
-                                    form.executeSubmit().then(res => {
-                                            var variableManager = camForm.variableManager;
+                                async function result() {
+                                    await new Promise(function (resolve, reject) {
+                                        form.executeSubmit().then(res => {
+                                                var variableManager = camForm.variableManager;
 
-                                            variableManager.createVariable({
-                                                name: (camForm.taskId != null) ? camForm.taskId + submissionSuffix : startFormVariableName,
-                                                type: 'Json',
-                                                value: res,
-                                                isDirty: true
-                                            });
-                                            firstSubmit = false
-                                            $scope.complete()
-                                            resolve()
-                                        }, err => {
-                                            evt.submitPrevented = true
-                                            resolve()
-                                        }
-                                    )
-                                });
-                            }
+                                                let submissionVariable = {
+                                                    name: (camForm.taskId != null) ? camForm.taskId + submissionSuffix : startFormVariableName,
+                                                    type: 'Json',
+                                                    value: res,
+                                                    valueInfo: {transient: submitAsTransientVariableDefault},
+                                                    isDirty: true
+                                                }
+
+                                                if (customSubmissionVariableName != null) {
+                                                    submissionVariable.name = customSubmissionVariableName
+                                                }
+
+                                                if (transientVariableParamValue != null) {
+                                                    if (transientVariableParamValue === 'true') {
+                                                        submissionVariable.valueInfo = {transient: true}
+                                                    }
+                                                }
+
+                                                variableManager.createVariable(submissionVariable);
+                                                firstSubmit = false
+                                                $scope.complete()
+                                                resolve()
+
+                                            }, err => {
+                                                evt.submitPrevented = true
+                                                resolve()
+                                            }
+                                        )
+                                    });
+                                }
+                            });
                         });
-                    });
+                } catch (e) {
+                    log.error(e)
+                }
             })
         });
     </script>
