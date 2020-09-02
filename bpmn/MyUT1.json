@@ -2,15 +2,29 @@
   "display": "form",
   "components": [
     {
-      "label": "First Name - Loaded from Deployment",
+      "label": "First Name",
       "tableView": true,
       "customDefaultValue": "let variables = angular.element('#task-form-formio').scope().camForm.formioVariables\n\nvalue = variables.postProcessed_submission.data.firstName",
+      "calculateValue": "value = \"cat\"",
+      "calculateServer": true,
       "key": "firstName",
+      "validate": {
+        "custom": "valid = false",
+        "customPrivate": true
+      },
       "properties": {
         "fetchVariable": "postProcessed_submission"
       },
       "type": "textfield",
       "input": true
+    },
+    {
+      "type": "button",
+      "label": "Submit",
+      "key": "submit",
+      "disableOnInvalid": true,
+      "input": true,
+      "tableView": false
     }
   ]
 }

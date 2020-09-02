@@ -75,7 +75,7 @@ If you do not want to use the taskId, then see the `var` configuration option to
 
 ## Building Forms:
 
-You can build your form and copy the JSON from: [https://formio.github.io/formio.js/app/builder](https://formio.github.io/formio.js/app/builder`)
+You can build your form and copy the JSON from: [https://formio.github.io/formio.js/app/builder](https://formio.github.io/formio.js/app/builder)
 
 Remove the `Submit` button as it is not required / it will not be used.
 

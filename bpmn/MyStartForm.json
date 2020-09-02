@@ -151,6 +151,14 @@
       "action": "reset",
       "label": "Reset Form",
       "theme": "success"
+    },
+    {
+      "type": "button",
+      "label": "Submit",
+      "key": "submit",
+      "disableOnInvalid": true,
+      "input": true,
+      "tableView": false
     }
   ]
 }

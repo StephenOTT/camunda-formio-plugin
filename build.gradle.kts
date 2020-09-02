@@ -38,11 +38,13 @@ configurations {
 }
 
 dependencies {
-    implementation(enforcedPlatform("org.springframework.boot:spring-boot-dependencies:2.2.5.RELEASE"))
+    testImplementation(enforcedPlatform("org.springframework.boot:spring-boot-dependencies:2.2.5.RELEASE"))
     implementation(enforcedPlatform("org.camunda.bpm:camunda-bom:7.13.0"))
+
     implementation("org.camunda.bpm.springboot:camunda-bpm-spring-boot-starter")
-    implementation("org.camunda.bpm.springboot:camunda-bpm-spring-boot-starter-webapp")
-    implementation("org.camunda.bpm.springboot:camunda-bpm-spring-boot-starter-rest")
+
+    testImplementation("org.camunda.bpm.springboot:camunda-bpm-spring-boot-starter-webapp")
+    testImplementation("org.camunda.bpm.springboot:camunda-bpm-spring-boot-starter-rest")
 
     implementation("org.jetbrains.kotlin:kotlin-stdlib-jdk8:$kotlinVersion")
     implementation("org.jetbrains.kotlin:kotlin-reflect:$kotlinVersion")
@@ -57,6 +59,11 @@ dependencies {
 
     runtimeOnly("com.h2database:h2:1.4.200")
 
+    implementation("org.apache.httpcomponents:fluent-hc:4.5.12")
+
+
+
+    testImplementation("org.springframework.boot:spring-boot-starter-test")
 }
 
 application {
@@ -66,7 +73,6 @@ application {
 java {
     sourceCompatibility = JavaVersion.VERSION_1_8
 }
-
 
 tasks {
     withType<KotlinCompile> {

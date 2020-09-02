@@ -1,0 +1,23 @@
+{
+  "display": "form",
+  "components": [
+    {
+      "label": "Some Field",
+      "tableView": true,
+      "key": "someField",
+      "type": "textfield",
+      "input": true
+    },
+    {
+      "label": "Some Other Field",
+      "description": "This field is read only and will not be persisted after being sent to server.",
+      "disabled": true,
+      "tableView": true,
+      "defaultValue": "Some Read Only Value!!!",
+      "persistent": false,
+      "key": "someOtherField",
+      "type": "textfield",
+      "input": true
+    }
+  ]
+}

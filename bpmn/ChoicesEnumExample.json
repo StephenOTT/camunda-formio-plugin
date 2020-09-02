@@ -1,0 +1,37 @@
+{
+  "display": "form",
+  "components": [
+    {
+      "label": "Some Choices",
+      "optionsLabelPosition": "right",
+      "inline": false,
+      "tableView": false,
+      "values": [
+        {
+          "label": "Choice A",
+          "value": "A",
+          "shortcut": ""
+        },
+        {
+          "label": "Choice B",
+          "value": "B",
+          "shortcut": ""
+        },
+        {
+          "label": "Choice C",
+          "value": "C",
+          "shortcut": ""
+        },
+        {
+          "label": "Choice D",
+          "value": "D",
+          "shortcut": ""
+        }
+      ],
+      "dataType": "string",
+      "key": "someChoices",
+      "type": "radio",
+      "input": true
+    }
+  ]
+}

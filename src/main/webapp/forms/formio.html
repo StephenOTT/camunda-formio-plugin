@@ -6,8 +6,10 @@
     <!-- TODO is it better to have the formio div in the <form> element or outside of it?   -->
     <div id="formio"></div>
 
-    <script cam-script type="text/form-script">
+        <script cam-script type="text/form-script">
 <!--    <script>-->
+
+
         let submissionSuffix = '_submission'
         let startFormVariableName = 'startForm' + submissionSuffix;
         let formLocationDeploymentParam = 'deployment'
@@ -17,6 +19,8 @@
         let submitAsTransientVariableParam = "transient"
         let submitAsTransientVariableDefault = false
         let submissionVariableNameParam = "var"
+        let removePrivateValidations = true
+        let firstSubmit = true;
 
         function getParameterByName(name, url) {
             if (!url) url = window.location.href;
@@ -26,6 +30,14 @@
             if (!results) return null;
             if (!results[2]) return '';
             return decodeURIComponent(results[2].replace(/\+/g, ' '));
+        }
+
+        function cleanPrivateValidations(schema) {
+            FormioUtils.eachComponent(schema.components, component => {
+                if (component.validate && component.validate.customPrivate) {
+                    delete component.validate.custom;
+                }
+            })
         }
 
         function getSchema() {
@@ -68,12 +80,16 @@
 
                             }).then(function (ids) {
                                 $http.get(Uri.appUri('engine://engine/:engine/deployment/' + ids.deploymentId + '/resources/' + ids.resourceId + '/data')).then(function (response) {
-                                    resolve(response.data)
+                                    let schema = response.data
+                                    cleanPrivateValidations(schema) // This would be removed in future, but currently there is no server API to clean the files
+                                    resolve(schema)
                                 });
                             });
 
                         } else if (details.formType === formLocationLocalPathParam) {
-                            resolve($.getJSON(details.formName))
+                            let schema = $.getJSON(details.formName)
+                            cleanPrivateValidations(schema) // This would be removed in future, but currently there is no server API to clean the files
+                            resolve(schema)
 
                         } else {
                             console.error("Unknown form type was provided: " + details.formType)
@@ -82,12 +98,6 @@
                 }]);
             })
         }
-
-        // TODO review if this is even working / does it do anything?
-        camForm.on('submit-error', function (evt, res) {
-            evt.submitPrevented = false;
-            console.log("Camunda-Formio Submission Error")
-        });
 
 
         function getVariables(varNames) {
@@ -124,9 +134,10 @@
             })
         }
 
+
         camForm.on('form-loaded', function () {
+        $scope.options.hideCompleteButton = true
             getSchema().then(schema => {
-            debugger;
                 // TODO Move the below into its own function
                 let components = FormioUtils.flattenComponents(schema.components);
                 let fieldsWithFetch = _.filter(components, function (o) {
@@ -149,62 +160,118 @@
                 })
 
             }).then(details => {
-                let firstSubmit = true;
                 // TODO add a loading text
                 try {
                     Formio.createForm(document.getElementById(formioDivId), details.schema)
                         .then(function (form) {
+                            $scope.formioForm = form
                             form.nosubmit = true;
 
                             let customSubmissionVariableName = getParameterByName(submissionVariableNameParam, camForm.options.formUrl);
                             let transientVariableParamValue = getParameterByName(submitAsTransientVariableParam, camForm.options.formUrl);
 
-                            camForm.on('submit', function (evt) {
-                                // TODO Clean this section up..
-                                // TODO review if better way to prevent the submission from moving forward.. Was only way i found based on forum post...
-                                // ISSUE: https://forum.camunda.org/t/evt-submitprevented-true-any-way-to-hide-the-default-warning/3875
-                                evt.submitPrevented = firstSubmit
-                                if (firstSubmit) {
-                                    result()
+
+
+                            // TODO review if this is even working / does it do anything?
+                            camForm.on('submit-failed', function (evt, res) {
+                                //evt.submitPrevented = false;
+                                console.log("Camunda-Formio Submission Validation Error")
+                                let error = res[0].message
+                                let formioError = JSON.parse(error.slice(error.indexOf(': ') + 1))
+                                // scope.formioSubmitPromise.reject(formioError)
+
+                                $scope.formioForm.showErrors(formioError.details)
+                                $scope.formioForm.emit('submitError')
+                                debugger;
+                             });
+
+
+                            camForm.on('submit-success', function (evt) {
+                                $scope.formioForm.emit('submitDone', $scope.formioSubmission)
+                                // $scope.formioSubmitPromise.resolve()
+                            })
+
+
+                            form.on('submit', submission => {
+                                var variableManager = camForm.variableManager;
+                                $scope.formioSubmission = submission
+                                let submissionVariable = {
+                                    name: (camForm.taskId != null) ? camForm.taskId + submissionSuffix : startFormVariableName,
+                                    type: 'Json',
+                                    value: submission,
+                                    valueInfo: {transient: submitAsTransientVariableDefault},
+                                    isDirty: true
                                 }
-                                firstSubmit = true
 
-                                async function result() {
-                                    await new Promise(function (resolve, reject) {
-                                        form.executeSubmit().then(res => {
-                                                var variableManager = camForm.variableManager;
-
-                                                let submissionVariable = {
-                                                    name: (camForm.taskId != null) ? camForm.taskId + submissionSuffix : startFormVariableName,
-                                                    type: 'Json',
-                                                    value: res,
-                                                    valueInfo: {transient: submitAsTransientVariableDefault},
-                                                    isDirty: true
-                                                }
-
-                                                if (customSubmissionVariableName != null) {
-                                                    submissionVariable.name = customSubmissionVariableName
-                                                }
-
-                                                if (transientVariableParamValue != null) {
-                                                    if (transientVariableParamValue === 'true') {
-                                                        submissionVariable.valueInfo = {transient: true}
-                                                    }
-                                                }
-
-                                                variableManager.createVariable(submissionVariable);
-                                                firstSubmit = false
-                                                $scope.complete()
-                                                resolve()
-
-                                            }, err => {
-                                                evt.submitPrevented = true
-                                                resolve()
-                                            }
-                                        )
-                                    });
+                                if (customSubmissionVariableName != null) {
+                                    submissionVariable.name = customSubmissionVariableName
                                 }
-                            });
+
+                                if (transientVariableParamValue != null) {
+                                    if (transientVariableParamValue === 'true') {
+                                        submissionVariable.valueInfo = {transient: true}
+                                    }
+                                }
+
+                                variableManager.createVariable(submissionVariable);
+                                // firstSubmit = false
+                                // $scope.formioSubmitPromise = new Promise((resolve, reject) => {
+                                //     if (resolve){
+                                //         form.emit("submitDone", submission)
+                                //     } else {
+                                //         form.emit("submitError", reject)
+                                //
+                                //     }
+                                // });
+                                $scope.complete()
+                            })
+
+                            // camForm.on('submit', function (evt) {
+                            //     // TODO Clean this section up..
+                            //     // TODO review if better way to prevent the submission from moving forward.. Was only way i found based on forum post...
+                            //     // ISSUE: https://forum.camunda.org/t/evt-submitprevented-true-any-way-to-hide-the-default-warning/3875
+                            //     evt.submitPrevented = firstSubmit
+                            //     if (firstSubmit) {
+                            //         executeFormioSubmit()
+                            //     }
+                            //     firstSubmit = true
+                            //
+                            //     async function executeFormioSubmit() {
+                            //         await new Promise(function (resolve, reject) {
+                            //             form.executeSubmit().then(res => {
+                            //                     var variableManager = camForm.variableManager;
+                            //
+                            //                     let submissionVariable = {
+                            //                         name: (camForm.taskId != null) ? camForm.taskId + submissionSuffix : startFormVariableName,
+                            //                         type: 'Json',
+                            //                         value: res,
+                            //                         valueInfo: {transient: submitAsTransientVariableDefault},
+                            //                         isDirty: true
+                            //                     }
+                            //
+                            //                     if (customSubmissionVariableName != null) {
+                            //                         submissionVariable.name = customSubmissionVariableName
+                            //                     }
+                            //
+                            //                     if (transientVariableParamValue != null) {
+                            //                         if (transientVariableParamValue === 'true') {
+                            //                             submissionVariable.valueInfo = {transient: true}
+                            //                         }
+                            //                     }
+                            //
+                            //                     variableManager.createVariable(submissionVariable);
+                            //                     firstSubmit = false
+                            //                     $scope.complete()
+                            //                     resolve()
+                            //
+                            //                 }, err => {
+                            //                     evt.submitPrevented = true
+                            //                     resolve()
+                            //                 }
+                            //             )
+                            //         });
+                            //     }
+                            // });
                         });
                 } catch (e) {
                     log.error(e)
