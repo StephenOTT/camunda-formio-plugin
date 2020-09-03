@@ -8,10 +8,6 @@
       "calculateValue": "value = \"cat\"",
       "calculateServer": true,
       "key": "firstName",
-      "validate": {
-        "custom": "valid = false",
-        "customPrivate": true
-      },
       "properties": {
         "fetchVariable": "postProcessed_submission"
       },

@@ -1,37 +1,74 @@
 # Camunda Formio Plugin
 
-Provides integration for using Camunda Embedded Forms with Formio Form Renderer.
+Provides client-side and server-side integration for using Camunda Embedded Forms with Formio Forms.
 
 Using Formio for a Start Form:
 
-> ![Start Form](./doc/Start-Form.png)
+![Start Form](./doc/StartForm-Config.png)
+
 
 Using Formio for User Tasks:
 
-> ![User Task Form](./doc/UT1.png)
+![User Task Form](./doc/UserTask-Config.png)
+
+If you want to add server side validation, you add a Validation Constraint with the name `formio`.  See the Server Validation 
+section for more details.
 
 
 ## What does it do?
 
-Allows you to configure start-event forms and user-task forms with a `formkey` that can trigger formio form renders in Camunda Tasklist webapp.
+Allows you to configure *start-event* forms and *user-task* forms with a `formkey` that will load formio forms in Camunda Tasklist webapp.
 
 
 ## Configure the BPMN
 
-Configuring a Start Form:
+Example of Configuring a Start Form:
 
-`embedded:/forms/formio.html?deployment=MyStartForm.json`
+`embedded:/forms/formio.html?deployment=MyStartForm.json&var=submission&transient=true`
 
->![start form configuration](./doc/Config-Start.png)
+In this example, we use the `deployment` parameter to direct the use of the `MyStartForm.json` form schema which is found in the BPMN Deployment resources. 
+We use the `var` parameter to direct the name of the process variable that will be created to store the form submission. 
+We use the `transient` parameter to direct the process variable holding the form submission get created as a 
+[transient variable](https://docs.camunda.org/manual/7.13/user-guide/process-engine/variables/#transient-variables) 
 
-Configuring a User Task:
 
-`embedded:/forms/formio.html?deployment=MyUT1.json`
+![start form configuration](./doc/StartForm-Config.png)
 
->![start form configuration](./doc/Config-UT1.png)
+```xml
+<bpmn:startEvent id="Event_0emfvgy"
+                 camunda:formKey="embedded:/forms/formio.html?deployment=MyStartForm.json&#38;var=submission&#38;transient=true">
+    <bpmn:outgoing>Flow_1ax32ut</bpmn:outgoing>
+</bpmn:startEvent>
+```
+
+
+Example of Configuring a User Task:
+
+`embedded:/forms/formio.html?deployment=MyUT1.json&var=subWithServerValidation
+
+![start form configuration](./doc/UserTask-Config.png)
+
+```xml
+<bpmn:userTask id="Activity_1xq7c62" name="Typical Form with Server Validation"
+               camunda:formKey="embedded:/forms/formio.html?deployment=MyUT1.json&#38;var=subWithServerValidation">
+    <bpmn:extensionElements>
+        <camunda:formData>
+            <camunda:formField id="FormField_0t7u03d" type="string">
+                <camunda:validation>
+                    <camunda:constraint name="formio"/>
+                </camunda:validation>
+            </camunda:formField>
+        </camunda:formData>
+    </bpmn:extensionElements>
+    <bpmn:incoming>Flow_0069xxd</bpmn:incoming>
+    <bpmn:outgoing>Flow_18xtnen</bpmn:outgoing>
+</bpmn:userTask>
+```
 
 
 ### Configuration Options:
+
+The following are the parameters that can be passed in the `formKey`:
 
 | Parameter | Required? | Default | Description |
 |---------------|-------------------|--------------|-----------------------|
@@ -51,33 +88,41 @@ Examples:
 
 ### Camunda SpringBoot Deployment
 
-...
+WIP: Add the dependency to your Camunda Webapp deployment.
 
 ### Typical Camunda Deployment
 
-...
+WIP: Add the dependency to your Camunda Webapp deployment.
 
 
-## Submission storage
+## Submission Storage
 
-When a successful submission occurs, a `json` variable will be created as a Process Instance Variable.  
+When a successful submission occurs, a `json` variable will be created as a Process Instance Variable. 
+
+Use [Camunda SPIN library](https://docs.camunda.org/manual/7.13/reference/spin/json/) to access the json variable properties.
+
+Example in a gateway expression: `${someSubmission.prop('data').prop('someFieldKey').value()}`
 
 
 ### Resolving User Task `taskId` to more meaningful values
 
-Very often the taskID (which is typically a UUID) will not be very meaningful.  If you require more meaningful variable name 
-consider using the Activity ID (the `id` property when you are in the Modeler on a user task activity).
-
-Use input/output mappings to control modification of the variables.
-
-If you do not want to use the taskId, then see the `var` configuration option to customize the variable name. 
+Very often the taskID (which is typically a UUID) will not be very meaningful.  If you require more meaningful variable names 
+consider using the `var` parameter to set a custom variable name or use the Activity ID (the `id` property when you are in the Modeler on a user task activity).
 
 
 ## Building Forms:
 
 You can build your form and copy the JSON from: [https://formio.github.io/formio.js/app/builder](https://formio.github.io/formio.js/app/builder)
 
-Remove the `Submit` button as it is not required / it will not be used.
+
+### Submitting a Form as a BPMN Error
+
+Coming soon!
+
+
+### Submitting a Form as a BPMN Escalation
+
+Coming soon!
 
 
 ## Deploying your Forms
@@ -86,34 +131,32 @@ Remove the `Submit` button as it is not required / it will not be used.
 
 Forms can be deployed through the REST API.  The form JSON must be part of the same deployment as the BPMN.
  
- If changes need to be made to the form, you must deploy a new .json file along with the BPMN.
- 
-The BPMN and the JSON files must be part of the same deployment.
+If changes need to be made to the form, you must deploy a new .json file along with the BPMN.
  
 An example of using Postman to deploy:
  
 ![Deployment in Postman](./doc/Deployment.png)
 
-The `Form Key` in the BPMN will use the `deployment=` parameter.
+When using REST API Form deployments, use the `deployment` parameter in the form key such as: 
+`embedded:/forms/formio.html?deployment=MyUT1.json`
 
 ### File System Forms Deployment (or other URLs)
  
- Forms can be deployed on the file system and made available to the web application.  The common way to do this is 
- through `src/main/webapp/forms` (or whatever folder you like within `webapp`).
+Forms can be deployed on the file system and made available to the web application.  The common way to do this is 
+through `src/main/webapp/forms` (or whatever folder you like within `webapp`).
  
- If you want to make changes to the JSON, you can modify the json directly without having to make a new deployment.
+If you want to make changes to the JSON, you can modify the JSON file without having to make a new BPMN deployment.
  
- If you do not want to use the File System, you can deploy to another URL within the same domain as Camunda Tasklist.  Then 
- you can set your Form Key to something like: `embedded:/forms/formio.html?deployment=http://example.com/forms/MyUT1.json`
+If you do not want to use the file system, you can deploy to another URL within the same domain as Camunda Webapps.  Then 
+you can set your `formKey` to something like: `embedded:/forms/formio.html?deployment=http://example.com/forms/MyUT1.json`
  
- The benefit of having your form/JSON outside of the Camunda BPMN Deployment is you are not required to redeploy the BPMN each time you make changes to the form.  
- But in many use cases you will want to tie your BPMN and Forms together within the same deployment for versioning purposes.
+The benefit of having your form/JSON outside of the BPMN deployment is you are not required to redeploy the BPMN each 
+time you make changes to the form, but in many use cases you will want to tie your BPMN and forms together 
+within the same deployment for versioning purposes.
  
 ## Example Submission
  
-> ![Cockpit](./doc/Cockpit2.png)
-
-> ![JSON in cockpit](./doc/Task-UT1-Submission-Json.png)
+![Cockpit](./doc/Cockpit2.png)
  
  ```json
 {
@@ -146,7 +189,7 @@ The `Form Key` in the BPMN will use the `deployment=` parameter.
 ```
 
 
-## Variable Fetching from Formio
+## Variable Fetching in Formio
 
 Formio will fetch variables based on configurations in the component configuration.
 
@@ -155,6 +198,7 @@ Under the API tab of a component create a custom property with the following for
 **key:** `fetchVariable`  **value:** `variableName` (recommended not to use spaces in variable names)
 
 Once you get your variable, use the Default Value Population feature to populate your field with the data returned from the variable fetch.
+
 
 ## Default Value Population
 
@@ -186,19 +230,43 @@ Formio based submissions place the form submission data inside of the `data` obj
 Common use case would be to set the First Name field as read-only if it is for display purposes.
 
 1. Configure the Component: 
+
    ![Build1](./doc/Form-Build-1.png)
 
 1. Go to the Data tab: 
+
    ![Build2](./doc/Form-Build-2.png)
 
 1. Scroll down to Custom Default Value: 
+
    ![Build3](./doc/Form-Build-3.png)
 
 1. Add your JS logic for selecting your default value: 
+
    ![Build4](./doc/Form-Build-4.png)
 
 1. Go to the API tab: 
+
    ![Build5](./doc/Form-Build-5.png)
 
-1. Create a Custom property with key `fetchVariable`, and the value of the variable you want to work within your JS in step 4. 
+1. Create a Custom property with key `fetchVariable`, and the value of the variable you want to work within your JS in step 4.
+ 
    ![Build6](./doc/Form-Build-6.png)
+   
+
+## Server Validation (Validating submissions against the schema on the server)
+
+This section is a WORK IN PROGRESS / WIP: Validations are functional, but easy configuration is still ongoing
+
+From submissions can optionally be enabled with server-side validation by the Formio server-side validation.
+
+To enable server-side validation of a *start-form* or *user-task*, add a "validation constraint" in the form fields configuration. 
+Set any field type, and create a constraint with the key/name "formio":
+
+![server config](./doc/UserTask-Config.png)
+
+By default, a lightweight local [form-validation-server](https://github.com/StephenOTT/Form-Validation-Server) 
+(validating formio schemas) will be deployed (`localhost:8081/validate`) along with Camunda Webapps.
+
+If you want to use your own deployment of the [form-validation-server](https://github.com/StephenOTT/Form-Validation-Server), 
+configure the camunda-formio process engine plugin with the url to the validation endpoint.
