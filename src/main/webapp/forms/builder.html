@@ -1,0 +1,31 @@
+<html lang="en">
+<head>
+    <link rel='stylesheet' href='https://stackpath.bootstrapcdn.com/bootstrap/4.4.1/css/bootstrap.min.css'>
+    <link rel='stylesheet' href='https://unpkg.com/formiojs@latest/dist/formio.full.min.css'>
+    <script src='https://unpkg.com/formiojs@latest/dist/formio.full.min.js'></script>
+    <script type='text/javascript'>
+        window.onload = function() {
+            Formio.builder(document.getElementById('builder')).then(builder => {
+                builder.on('saveComponent', evt => {
+                    document.getElementById('json-export').innerHTML = JSON.stringify(builder.schema, null, 4)
+                })
+            });
+        };
+    </script>
+    <title>Form Builder</title>
+</head>
+<body>
+<div class="col-lg">
+    <h1>Form Builder</h1>
+    <br>
+    <div id='builder' class="col-lg"></div>
+</div>
+<div class = "col-md-9">
+    <hr>
+    <p>Copy your JSON:</p>
+    <br>
+    <pre id="json-export"></pre>
+    <br>
+</div>
+</body>
+</html>

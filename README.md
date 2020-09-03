@@ -112,7 +112,9 @@ consider using the `var` parameter to set a custom variable name or use the Acti
 
 ## Building Forms:
 
-You can build your form and copy the JSON from: [https://formio.github.io/formio.js/app/builder](https://formio.github.io/formio.js/app/builder)
+Local Builder: Deploy Webapp and access a local builder at: `http://..../forms/builder.html`
+
+Hosted Builder: [https://formio.github.io/formio.js/app/builder](https://formio.github.io/formio.js/app/builder)
 
 
 ### Submitting a Form as a BPMN Error
@@ -256,17 +258,20 @@ Common use case would be to set the First Name field as read-only if it is for d
 
 ## Server Validation (Validating submissions against the schema on the server)
 
-This section is a WORK IN PROGRESS / WIP: Validations are functional, but easy configuration is still ongoing
-
 From submissions can optionally be enabled with server-side validation by the Formio server-side validation.
 
-To enable server-side validation of a *start-form* or *user-task*, add a "validation constraint" in the form fields configuration. 
-Set any field type, and create a constraint with the key/name "formio":
+To enable server-side validation of a *start-form* or *user-task*:
 
-![server config](./doc/UserTask-Config.png)
+1. add a "validation constraint" in the form fields configuration. 
 
-By default, a lightweight local [form-validation-server](https://github.com/StephenOTT/Form-Validation-Server) 
-(validating formio schemas) will be deployed (`localhost:8081/validate`) along with Camunda Webapps.
+1. Set any field type, and create a constraint with the key/name "formio":
 
-If you want to use your own deployment of the [form-validation-server](https://github.com/StephenOTT/Form-Validation-Server), 
-configure the camunda-formio process engine plugin with the url to the validation endpoint.
+   ![server config](./doc/UserTask-Config.png)
+
+1. Deploy the [form-validation-server](https://github.com/StephenOTT/Form-Validation-Server)
+
+1. Configure the Plugin `FormioFormFieldValidationProcessEnginePlugin.class`.
+The plugin has the following parameters:
+   1. `validationUrl` : The validation url to send submissions to.  Defaults to `localhost:8081/validate`.
+   1. `validationTimeout` : The milliseconds to wait before timeout of the Validation Url HTTP request.  Defaults to `10000` 10 seconds.
+   1. `validationHandler` : The bean instance that will execute the Formio Validation.  Defaults to an instance of `SimpleFormioValidationHandler.class`.  Override this configuration if you have special validation handling requirements.
