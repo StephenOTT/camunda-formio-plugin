@@ -4,6 +4,9 @@ import org.camunda.bpm.engine.ProcessEngine
 import org.camunda.bpm.engine.impl.cfg.ProcessEngineConfigurationImpl
 import org.camunda.bpm.engine.impl.cfg.ProcessEnginePlugin
 
+/**
+ * Plugin for managing Server-side validations for Formio form submissions
+ */
 open class FormioFormFieldValidatorProcessEnginePlugin(
         val formioUrl: String = "http://localhost:8081/validate",
         val validationTimeout: Int = 10000,
