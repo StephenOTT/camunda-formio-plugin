@@ -4,12 +4,10 @@
     {
       "label": "First Name",
       "tableView": true,
-      "customDefaultValue": "let variables = angular.element('#task-form-formio').scope().camForm.formioVariables\n\nvalue = variables.postProcessed_submission.data.firstName",
-      "calculateValue": "value = \"cat\"",
-      "calculateServer": true,
       "key": "firstName",
       "properties": {
-        "fetchVariable": "postProcessed_submission"
+        "fetchVariable": "postProcessed_submission",
+        "camVariableName": "postProcessed_submission.data.firstName"
       },
       "type": "textfield",
       "input": true
@@ -21,6 +19,28 @@
       "disableOnInvalid": true,
       "input": true,
       "tableView": false
+    },
+    {
+      "label": "Submit as Business Error",
+      "action": "event",
+      "showValidations": true,
+      "theme": "warning",
+      "tableView": false,
+      "key": "bpmn-error",
+      "type": "button",
+      "event": "bpmn-error",
+      "input": true
+    },
+    {
+      "label": "Submit as Escalation",
+      "action": "event",
+      "showValidations": true,
+      "theme": "secondary",
+      "tableView": false,
+      "key": "bpmn-escalation",
+      "type": "button",
+      "event": "bpmn-escalation",
+      "input": true
     }
   ]
 }

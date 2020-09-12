@@ -204,12 +204,48 @@ Once you get your variable, use the Default Value Population feature to populate
 
 ## Default Value Population
 
+Make sure to fetch the variables using the `fetchVariable` configuration.
+
+### Simple Configuration
+
+The simple configuration provides a rapid setup option allowing most common use case access to variables.
+
+In the form component's API tab, set a custom property with key: `camVariableName` and the value being the dot notation path.
+
+Example:
+
+1. Given a simple camunda string variable named "firstName", the key-value configuration would be:
+   
+   `camVariableName: firstName`
+
+1. Given a previous formio form submission which is saved as a Camunda Json variable, the key-value configuration would be: 
+
+   `camVariableName: somePreviousSubmission.data.firstName` 
+
+
+If the variable is type Json and you would like to print out the json into the form field, add a property in the API tab with the configuration:
+
+Key:`stringify`
+
+Value: `true` (If you are manipulating the raw json, this should be an equivalent of `"true"`)
+
+
+### Advanced Configuration
+
+The advanced configuration provides javascript access to the variables, allowing complex configurations 
+such as variable manipulation, merging, trim, etc.
+
 Use the Custom Default Value Javascript feature in Formio to parse the returned variables.
 
 Variables get stored in `$scope.camForm.formioVariables`
 
-In the Custom Default Value configuration you can use: `let variables = angular.element('#task-form-formio').scope().camForm.formioVariables` 
-to access the object of variables.  Variables names are the Keys.
+In the Custom Default Value configuration you can use the following to access the object of variables:
+
+```js
+let variables = angular.element('#task-form-formio').scope().camForm.formioVariables
+```
+
+Variables names are the keys.
 
 If the variable is type `Json` it is automatically available as a JS Object.
 

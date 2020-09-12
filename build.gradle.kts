@@ -62,7 +62,6 @@ dependencies {
     implementation("org.apache.httpcomponents:fluent-hc:4.5.12")
 
 
-
     testImplementation("org.springframework.boot:spring-boot-starter-test")
 }
 
@@ -81,8 +80,6 @@ tasks {
             javaParameters = true
         }
     }
-
-
 
     withType<Test> {
         classpath = classpath.plus(configurations["developmentOnly"])

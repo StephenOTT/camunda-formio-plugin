@@ -1,6 +1,7 @@
 package com.github.stephenott.camunda.formio
 
 import org.apache.http.client.utils.URLEncodedUtils
+import org.camunda.bpm.engine.impl.cfg.CompositeProcessEnginePlugin
 import org.camunda.bpm.engine.impl.context.Context
 import org.camunda.bpm.engine.impl.form.validator.FormFieldConfigurationException
 import org.camunda.bpm.engine.impl.form.validator.FormFieldValidator
@@ -43,7 +44,9 @@ class FormioFormFieldValidator: FormFieldValidator {
             val formSchema = Spin.JSON(Context.getCommandContext().deploymentManager.findDeploymentById(deploymentId).getResource(fileName).bytes.toString(Charsets.UTF_8))
 
             val plugin = kotlin.runCatching {
-                Context.getProcessEngineConfiguration().processEnginePlugins.single { it is FormioFormFieldValidatorProcessEnginePlugin } as FormioFormFieldValidatorProcessEnginePlugin
+                // @TODO Review this as it is only in the case of spring boot.
+                (Context.getProcessEngineConfiguration().processEnginePlugins.single {it is CompositeProcessEnginePlugin } as CompositeProcessEnginePlugin).plugins
+                        .single{it is FormioFormFieldValidatorProcessEnginePlugin} as FormioFormFieldValidatorProcessEnginePlugin
 
             }.getOrElse {
                 throw FormFieldConfigurationException("Formio Validation Plugin", "Unable to find Formio Validation Plugin.")

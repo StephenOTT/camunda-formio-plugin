@@ -6,7 +6,7 @@
     <!-- TODO is it better to have the formio div in the <form> element or outside of it?   -->
     <div id="formio"></div>
 
-        <script cam-script type="text/form-script">
+                <script cam-script type="text/form-script">
 <!--    <script>-->
 
 
@@ -15,6 +15,8 @@
         let formLocationDeploymentParam = 'deployment'
         let formLocationLocalPathParam = "path"
         let fetchVariableKey = 'fetchVariable';
+        let camVariableNameKey = "camVariableName"
+        let stringifyKey = "stringify"
         let formioDivId = "formio"
         let submitAsTransientVariableParam = "transient"
         let submitAsTransientVariableDefault = false
@@ -134,9 +136,56 @@
             })
         }
 
+        function getDefaultValues(variablesStore, submissionObject, schema){
+            let defaultValues = {data: {}}
+            FormioUtils.eachComponent(schema.components, component => {
+                if (component.hasOwnProperty("properties")){
+                    if (component.properties.hasOwnProperty(camVariableNameKey)) {
+                        let defaultValue = _.get(variablesStore, component.properties[camVariableNameKey])
+                        let key = component.key
+
+                        if (component.properties[stringifyKey] === "true"){
+                            // @TODO do a check if the value is a object!
+                            defaultValue = JSON.stringify(defaultValue)
+                        }
+
+                        defaultValues.data[key] = defaultValue
+                    }
+                }
+            })
+            return defaultValues
+        }
+
+        function setupSubmissionVariables(submission) {
+            let customSubmissionVariableName = getParameterByName(submissionVariableNameParam, camForm.options.formUrl);
+            let transientVariableParamValue = getParameterByName(submitAsTransientVariableParam, camForm.options.formUrl);
+
+            var variableManager = camForm.variableManager;
+            $scope.formioSubmission = submission
+            let submissionVariable = {
+                name: (camForm.taskId != null) ? camForm.taskId + submissionSuffix : startFormVariableName,
+                type: 'Json',
+                value: submission,
+                valueInfo: {transient: submitAsTransientVariableDefault},
+                isDirty: true
+            }
+
+            if (customSubmissionVariableName != null) {
+                submissionVariable.name = customSubmissionVariableName
+            }
+
+            if (transientVariableParamValue != null) {
+                if (transientVariableParamValue === 'true') {
+                    submissionVariable.valueInfo = {transient: true}
+                }
+            }
+
+            variableManager.createVariable(submissionVariable);
+        }
+
 
         camForm.on('form-loaded', function () {
-        $scope.options.hideCompleteButton = true
+            $scope.options.hideCompleteButton = true
             getSchema().then(schema => {
                 // TODO Move the below into its own function
                 let components = FormioUtils.flattenComponents(schema.components);
@@ -167,111 +216,38 @@
                             $scope.formioForm = form
                             form.nosubmit = true;
 
-                            let customSubmissionVariableName = getParameterByName(submissionVariableNameParam, camForm.options.formUrl);
-                            let transientVariableParamValue = getParameterByName(submitAsTransientVariableParam, camForm.options.formUrl);
+                            form.submission = getDefaultValues($scope.camForm.formioVariables, form.submission.data, form.schema)
 
-
-
-                            // TODO review if this is even working / does it do anything?
                             camForm.on('submit-failed', function (evt, res) {
-                                //evt.submitPrevented = false;
                                 console.log("Camunda-Formio Submission Validation Error")
                                 let error = res[0].message
                                 let formioError = JSON.parse(error.slice(error.indexOf(': ') + 1))
-                                // scope.formioSubmitPromise.reject(formioError)
 
                                 $scope.formioForm.showErrors(formioError.details)
                                 $scope.formioForm.emit('submitError')
-                                debugger;
-                             });
-
+                            });
 
                             camForm.on('submit-success', function (evt) {
                                 $scope.formioForm.emit('submitDone', $scope.formioSubmission)
                                 // $scope.formioSubmitPromise.resolve()
                             })
 
-
                             form.on('submit', submission => {
-                                var variableManager = camForm.variableManager;
-                                $scope.formioSubmission = submission
-                                let submissionVariable = {
-                                    name: (camForm.taskId != null) ? camForm.taskId + submissionSuffix : startFormVariableName,
-                                    type: 'Json',
-                                    value: submission,
-                                    valueInfo: {transient: submitAsTransientVariableDefault},
-                                    isDirty: true
+                                setupSubmissionVariables(submission)
+
+                                if (submission['@bpmn-escalation'] === true && submission['@bpmn-error'] === true) {
+                                    throw "cannot have a bpmn-escalation & a bpmn-error at the same time."
+                                    //https://docs.camunda.org/manual/7.12/reference/embedded-forms/controls/bpmn-buttons/
+                                } else if (submission['@bpmn-error'] === true) {
+
+                                } else if (submission['@bpmn-escalation'] === true) {
+
+                                } else {
+                                    $scope.complete()
                                 }
 
-                                if (customSubmissionVariableName != null) {
-                                    submissionVariable.name = customSubmissionVariableName
-                                }
-
-                                if (transientVariableParamValue != null) {
-                                    if (transientVariableParamValue === 'true') {
-                                        submissionVariable.valueInfo = {transient: true}
-                                    }
-                                }
-
-                                variableManager.createVariable(submissionVariable);
-                                // firstSubmit = false
-                                // $scope.formioSubmitPromise = new Promise((resolve, reject) => {
-                                //     if (resolve){
-                                //         form.emit("submitDone", submission)
-                                //     } else {
-                                //         form.emit("submitError", reject)
-                                //
-                                //     }
-                                // });
-                                $scope.complete()
                             })
 
-                            // camForm.on('submit', function (evt) {
-                            //     // TODO Clean this section up..
-                            //     // TODO review if better way to prevent the submission from moving forward.. Was only way i found based on forum post...
-                            //     // ISSUE: https://forum.camunda.org/t/evt-submitprevented-true-any-way-to-hide-the-default-warning/3875
-                            //     evt.submitPrevented = firstSubmit
-                            //     if (firstSubmit) {
-                            //         executeFormioSubmit()
-                            //     }
-                            //     firstSubmit = true
-                            //
-                            //     async function executeFormioSubmit() {
-                            //         await new Promise(function (resolve, reject) {
-                            //             form.executeSubmit().then(res => {
-                            //                     var variableManager = camForm.variableManager;
-                            //
-                            //                     let submissionVariable = {
-                            //                         name: (camForm.taskId != null) ? camForm.taskId + submissionSuffix : startFormVariableName,
-                            //                         type: 'Json',
-                            //                         value: res,
-                            //                         valueInfo: {transient: submitAsTransientVariableDefault},
-                            //                         isDirty: true
-                            //                     }
-                            //
-                            //                     if (customSubmissionVariableName != null) {
-                            //                         submissionVariable.name = customSubmissionVariableName
-                            //                     }
-                            //
-                            //                     if (transientVariableParamValue != null) {
-                            //                         if (transientVariableParamValue === 'true') {
-                            //                             submissionVariable.valueInfo = {transient: true}
-                            //                         }
-                            //                     }
-                            //
-                            //                     variableManager.createVariable(submissionVariable);
-                            //                     firstSubmit = false
-                            //                     $scope.complete()
-                            //                     resolve()
-                            //
-                            //                 }, err => {
-                            //                     evt.submitPrevented = true
-                            //                     resolve()
-                            //                 }
-                            //             )
-                            //         });
-                            //     }
-                            // });
                         });
                 } catch (e) {
                     log.error(e)

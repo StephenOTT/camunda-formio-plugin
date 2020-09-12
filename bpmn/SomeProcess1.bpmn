@@ -94,6 +94,32 @@ execution.setVariable('postProcessed_submission', execution.getVariable('submiss
       <bpmn:incoming>Flow_1b6gdbh</bpmn:incoming>
       <bpmn:outgoing>Flow_0x38wt9</bpmn:outgoing>
     </bpmn:userTask>
+    <bpmn:sequenceFlow id="Flow_0tm9nf2" sourceRef="Event_19kscew" targetRef="Activity_136f9by" />
+    <bpmn:sequenceFlow id="Flow_1oiyaed" sourceRef="Event_0hw13qf" targetRef="Activity_1c18sr8" />
+    <bpmn:endEvent id="Event_17gjw51">
+      <bpmn:incoming>Flow_1pbq7gx</bpmn:incoming>
+    </bpmn:endEvent>
+    <bpmn:sequenceFlow id="Flow_1pbq7gx" sourceRef="Activity_136f9by" targetRef="Event_17gjw51" />
+    <bpmn:endEvent id="Event_1fpw6td">
+      <bpmn:incoming>Flow_0bpdigz</bpmn:incoming>
+    </bpmn:endEvent>
+    <bpmn:sequenceFlow id="Flow_0bpdigz" sourceRef="Activity_1c18sr8" targetRef="Event_1fpw6td" />
+    <bpmn:userTask id="Activity_136f9by" name="Some BPMN Error handling Task">
+      <bpmn:incoming>Flow_0tm9nf2</bpmn:incoming>
+      <bpmn:outgoing>Flow_1pbq7gx</bpmn:outgoing>
+    </bpmn:userTask>
+    <bpmn:userTask id="Activity_1c18sr8" name="Some BPMN Escalation Task">
+      <bpmn:incoming>Flow_1oiyaed</bpmn:incoming>
+      <bpmn:outgoing>Flow_0bpdigz</bpmn:outgoing>
+    </bpmn:userTask>
+    <bpmn:boundaryEvent id="Event_19kscew" attachedToRef="Activity_1xq7c62">
+      <bpmn:outgoing>Flow_0tm9nf2</bpmn:outgoing>
+      <bpmn:errorEventDefinition id="ErrorEventDefinition_07ynmzm" errorRef="Error_0c6diu9" />
+    </bpmn:boundaryEvent>
+    <bpmn:boundaryEvent id="Event_0hw13qf" attachedToRef="Activity_1xq7c62">
+      <bpmn:outgoing>Flow_1oiyaed</bpmn:outgoing>
+      <bpmn:escalationEventDefinition id="EscalationEventDefinition_085r0f6" escalationRef="Escalation_0u474pr" />
+    </bpmn:boundaryEvent>
     <bpmn:textAnnotation id="TextAnnotation_19wn5bt">
       <bpmn:text>Required in 7.13 due to bug that does not allow listeners on start event access variables</bpmn:text>
     </bpmn:textAnnotation>
@@ -102,6 +128,8 @@ execution.setVariable('postProcessed_submission', execution.getVariable('submiss
   <bpmn:message id="Message_1s1rfqw" name="someMessage" />
   <bpmn:message id="Message_0u4htq0" name="m1" />
   <bpmn:message id="Message_024ni0v" name="m2" />
+  <bpmn:error id="Error_0c6diu9" name="someError" errorCode="default" />
+  <bpmn:escalation id="Escalation_0u474pr" name="someEscalation" escalationCode="default" />
   <bpmndi:BPMNDiagram id="BPMNDiagram_1">
     <bpmndi:BPMNPlane id="BPMNPlane_1" bpmnElement="someProcess1">
       <bpmndi:BPMNShape id="Event_0emfvgy_di" bpmnElement="Event_0emfvgy">
@@ -109,7 +137,7 @@ execution.setVariable('postProcessed_submission', execution.getVariable('submiss
       </bpmndi:BPMNShape>
       <bpmndi:BPMNEdge id="Flow_1ax32ut_di" bpmnElement="Flow_1ax32ut">
         <di:waypoint x="188" y="480" />
-        <di:waypoint x="230" y="480" />
+        <di:waypoint x="240" y="480" />
       </bpmndi:BPMNEdge>
       <bpmndi:BPMNShape id="Activity_0r0ndxw_di" bpmnElement="Activity_1xq7c62">
         <dc:Bounds x="490" y="570" width="100" height="80" />
@@ -129,11 +157,11 @@ execution.setVariable('postProcessed_submission', execution.getVariable('submiss
         <dc:Bounds x="640" y="570" width="100" height="80" />
       </bpmndi:BPMNShape>
       <bpmndi:BPMNEdge id="Flow_0eob9zj_di" bpmnElement="Flow_0eob9zj">
-        <di:waypoint x="330" y="480" />
+        <di:waypoint x="340" y="480" />
         <di:waypoint x="415" y="480" />
       </bpmndi:BPMNEdge>
       <bpmndi:BPMNShape id="Activity_0jlxpwl_di" bpmnElement="Activity_1g9mlga">
-        <dc:Bounds x="230" y="440" width="100" height="80" />
+        <dc:Bounds x="240" y="440" width="100" height="80" />
       </bpmndi:BPMNShape>
       <bpmndi:BPMNEdge id="Flow_0069xxd_di" bpmnElement="Flow_0069xxd">
         <di:waypoint x="440" y="505" />
@@ -228,9 +256,44 @@ execution.setVariable('postProcessed_submission', execution.getVariable('submiss
         <dc:Bounds x="210" y="310" width="140" height="82" />
       </bpmndi:BPMNShape>
       <bpmndi:BPMNEdge id="Association_04d5fx0_di" bpmnElement="Association_04d5fx0">
-        <di:waypoint x="280" y="440" />
-        <di:waypoint x="280" y="392" />
+        <di:waypoint x="287" y="440" />
+        <di:waypoint x="283" y="392" />
       </bpmndi:BPMNEdge>
+      <bpmndi:BPMNEdge id="Flow_0tm9nf2_di" bpmnElement="Flow_0tm9nf2">
+        <di:waypoint x="490" y="668" />
+        <di:waypoint x="490" y="760" />
+      </bpmndi:BPMNEdge>
+      <bpmndi:BPMNEdge id="Flow_1oiyaed_di" bpmnElement="Flow_1oiyaed">
+        <di:waypoint x="590" y="668" />
+        <di:waypoint x="590" y="730" />
+        <di:waypoint x="660" y="730" />
+      </bpmndi:BPMNEdge>
+      <bpmndi:BPMNShape id="Event_17gjw51_di" bpmnElement="Event_17gjw51">
+        <dc:Bounds x="592" y="782" width="36" height="36" />
+      </bpmndi:BPMNShape>
+      <bpmndi:BPMNEdge id="Flow_1pbq7gx_di" bpmnElement="Flow_1pbq7gx">
+        <di:waypoint x="540" y="800" />
+        <di:waypoint x="592" y="800" />
+      </bpmndi:BPMNEdge>
+      <bpmndi:BPMNShape id="Event_1fpw6td_di" bpmnElement="Event_1fpw6td">
+        <dc:Bounds x="812" y="712" width="36" height="36" />
+      </bpmndi:BPMNShape>
+      <bpmndi:BPMNEdge id="Flow_0bpdigz_di" bpmnElement="Flow_0bpdigz">
+        <di:waypoint x="760" y="730" />
+        <di:waypoint x="812" y="730" />
+      </bpmndi:BPMNEdge>
+      <bpmndi:BPMNShape id="Activity_1s7ml4b_di" bpmnElement="Activity_136f9by">
+        <dc:Bounds x="440" y="760" width="100" height="80" />
+      </bpmndi:BPMNShape>
+      <bpmndi:BPMNShape id="Activity_0c2zne5_di" bpmnElement="Activity_1c18sr8">
+        <dc:Bounds x="660" y="690" width="100" height="80" />
+      </bpmndi:BPMNShape>
+      <bpmndi:BPMNShape id="Event_0rfidvh_di" bpmnElement="Event_19kscew">
+        <dc:Bounds x="472" y="632" width="36" height="36" />
+      </bpmndi:BPMNShape>
+      <bpmndi:BPMNShape id="Event_1vl6axc_di" bpmnElement="Event_0hw13qf">
+        <dc:Bounds x="572" y="632" width="36" height="36" />
+      </bpmndi:BPMNShape>
     </bpmndi:BPMNPlane>
   </bpmndi:BPMNDiagram>
 </bpmn:definitions>
