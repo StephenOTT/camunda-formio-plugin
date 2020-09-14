@@ -6,7 +6,7 @@
     <!-- TODO is it better to have the formio div in the <form> element or outside of it?   -->
     <div id="formio"></div>
 
-                <script cam-script type="text/form-script">
+    <script cam-script type="text/form-script">
 <!--    <script>-->
 
 
@@ -196,16 +196,12 @@
         camForm.on('form-loaded', function () {
             $scope.options.hideCompleteButton = true
             getSchema().then(schema => {
-                // TODO Move the below into its own function
-                let components = FormioUtils.flattenComponents(schema.components);
-                let fieldsWithFetch = _.filter(components, function (o) {
-                    return _.has(o.properties, fetchVariableKey)
-                });
-
                 let varNames = []
-                _.forEach(fieldsWithFetch, function (o) {
-                    varNames.push(o.properties[fetchVariableKey])
-                });
+                FormioUtils.eachComponent(schema.components, component => {
+                    if (_.has(component.properties, fetchVariableKey)){
+                        varNames.push(component.properties[fetchVariableKey])
+                    }
+                })
 
                 return {schema: schema, varNames: varNames}
 
