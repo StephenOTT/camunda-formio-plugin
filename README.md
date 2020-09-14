@@ -88,11 +88,11 @@ Examples:
 
 ### Camunda SpringBoot Deployment
 
-WIP: Add the dependency to your Camunda Webapp deployment.
+See the `springboot` folder for a example of the deployment
 
 ### Typical Camunda Deployment
 
-WIP: Add the dependency to your Camunda Webapp deployment.
+See the `docker` folder for an example of the deployment using the Camunda Tomcat distribution
 
 
 ## Submission Storage
