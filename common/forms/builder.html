@@ -7,10 +7,18 @@
         window.onload = function() {
             Formio.builder(document.getElementById('builder')).then(builder => {
                 builder.on('saveComponent', evt => {
-                    document.getElementById('json-export').innerHTML = JSON.stringify(builder.schema, null, 4)
+                    document.getElementById('json-export').value = JSON.stringify(builder.schema, null, 4)
                 })
             });
         };
+
+        function importJsonToBuilder(){
+            Formio.builder(document.getElementById('builder'), JSON.parse(document.getElementById('json-import').value)).then(builder => {
+                builder.on('saveComponent', evt => {
+                    document.getElementById('json-export').value = JSON.stringify(builder.schema, null, 4)
+                })
+            });
+        }
     </script>
     <title>Form Builder</title>
 </head>
@@ -22,9 +30,18 @@
 </div>
 <div class = "col-md-9">
     <hr>
-    <p>Copy your JSON:</p>
+    <label for="json-export">Copy your JSON:</label>
     <br>
-    <pre id="json-export"></pre>
+    <textArea id="json-export" cols="50" rows="15"></textArea>
+    <br>
+</div>
+<div class = "col-md-9">
+    <hr>
+    <label for="json-import">Import JSON into Form Builder:</label>
+    <br>
+    <textArea id="json-import" cols="50" rows="10"></textArea>
+    <br>
+    <button onclick="importJsonToBuilder()">Import Json</button>
     <br>
 </div>
 </body>
