@@ -152,7 +152,7 @@
                         defaultValues.data[key] = defaultValue
                     }
                 }
-            })
+            }, true)
             return defaultValues
         }
 
@@ -201,7 +201,7 @@
                     if (_.has(component.properties, fetchVariableKey)){
                         varNames.push(component.properties[fetchVariableKey])
                     }
-                })
+                }, true)
 
                 return {schema: schema, varNames: varNames}
 
