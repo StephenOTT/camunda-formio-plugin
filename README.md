@@ -342,6 +342,8 @@ If you want to populate the subform with values from a variable, use the `camVar
 form submissions with Key: `camVariableName`  value: `myPreviousSubmissionJsonVariable.data`. The data object, which is what 
 Formio places all submission data into, will then be populated into the subform.
 
+It is the responsibility of the parent form to provide variable resolution for any fields in the subform.  Subforms with 
+form components that have `camVariableName` or `fetchVariable` properties will be ignored.  This may change in the future.
 
 ## File Uploads
 
