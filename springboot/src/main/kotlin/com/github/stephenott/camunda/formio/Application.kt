@@ -1,7 +1,5 @@
 package com.github.stephenott.camunda.formio
 
-import com.github.stephenott.camunda.formio.FormioFormFieldValidatorProcessEnginePlugin
-import com.github.stephenott.camunda.formio.SimpleFormioValidationHandler
 import org.camunda.bpm.spring.boot.starter.annotation.EnableProcessApplication
 import org.springframework.boot.autoconfigure.SpringBootApplication
 import org.springframework.boot.runApplication
