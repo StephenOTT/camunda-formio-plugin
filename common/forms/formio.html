@@ -6,23 +6,25 @@
     <!-- TODO is it better to have the formio div in the <form> element or outside of it?   -->
     <div id="formio"></div>
 
-    <script cam-script type="text/form-script">
+    <script cam-script type= "text/form-script">
 <!--    <script>-->
 
 
         let submissionSuffix = '_submission'
-        let startFormVariableName = 'startForm' + submissionSuffix;
+        let startFormVariableName = 'startForm' + submissionSuffix
         let formLocationDeploymentParam = 'deployment'
-        let formLocationLocalPathParam = "path"
-        let fetchVariableKey = 'fetchVariable';
-        let camVariableNameKey = "camVariableName"
-        let stringifyKey = "stringify"
-        let formioDivId = "formio"
-        let submitAsTransientVariableParam = "transient"
+        let formLocationLocalPathParam = 'path'
+        let fetchVariableKey = 'fetchVariable'
+        let camVariableNameKey = 'camVariableName'
+        let stringifyKey = 'stringify'
+        let formioDivId = 'formio'
+        let submitAsTransientVariableParam = 'transient'
         let submitAsTransientVariableDefault = false
-        let submissionVariableNameParam = "var"
+        let submissionVariableNameParam = 'var'
         let removePrivateValidations = true
-        let firstSubmit = true;
+        let firstSubmit = true
+        let subFormKey = 'subform'
+        let subFormHideButtonsKey = 'hideButtons'
 
         function getParameterByName(name, url) {
             if (!url) url = window.location.href;
@@ -34,33 +36,45 @@
             return decodeURIComponent(results[2].replace(/\+/g, ' '));
         }
 
+        /**
+         * Removes private/secret marked validations from the provided schema.
+         */
         function cleanPrivateValidations(schema) {
-            FormioUtils.eachComponent(schema.components, component => {
-                if (component.validate && component.validate.customPrivate) {
-                    delete component.validate.custom;
-                }
-            })
+            if (removePrivateValidations){
+                FormioUtils.eachComponent(schema.components, component => {
+                    if (component.validate && component.validate.customPrivate) {
+                        delete component.validate.custom;
+                    }
+                })
+            }
         }
 
-        function getSchema() {
+        /**
+         * Returns a formio schema object
+         * @returns {Promise<formioShchema>}
+         */
+        function getSchema(processDefId, formUrl) {
             return new Promise(resolve => {
                 inject(['$http', 'Uri', function ($http, Uri) {
-                    let processDefId = camForm.processDefinitionId;
+                    // let processDefId = camForm.processDefinitionId;
 
                     $http.get(Uri.appUri('engine://engine/:engine/process-definition/' + processDefId)).then(function (response) {
 
-                        let formNameDeployment = getParameterByName(formLocationDeploymentParam, camForm.options.formUrl);
+                        // let formNameDeployment = getParameterByName(formLocationDeploymentParam, camForm.options.formUrl);
+                        let formNameDeployment = getParameterByName(formLocationDeploymentParam, formUrl);
                         let formLocDeployment = function () {
                             return formNameDeployment !== null;
                         }
 
-                        let formNamePath = getParameterByName(formLocationLocalPathParam, camForm.options.formUrl);
+                        // let formNamePath = getParameterByName(formLocationLocalPathParam, camForm.options.formUrl);
+                        let formNamePath = getParameterByName(formLocationLocalPathParam, formUrl);
                         let formLocPath = function () {
                             return formNamePath !== null;
                         }
 
                         if (formLocDeployment() === false && formLocPath() === false) {
-                            console.error("No valid form json location was found for formio.")
+                            //@TODO bubble this to formio errors
+                            console.error("No valid form json location was found for formio. (could not deployment or path params in form key)")
                         }
 
                         let formName = formLocDeployment() === true ? formNameDeployment : formNamePath
@@ -103,6 +117,7 @@
 
 
         function getVariables(varNames) {
+            //@TODO Add error handling when variables are not found.  Should be bubbled to formio form errors view.
             return new Promise(resolve => {
                 if (camForm.taskId != null) {
                     inject(['$http', 'Uri', function ($http, Uri) {
@@ -139,12 +154,12 @@
         function getDefaultValues(variablesStore, submissionObject, schema){
             let defaultValues = {data: {}}
             FormioUtils.eachComponent(schema.components, component => {
-                if (component.hasOwnProperty("properties")){
+                if (component.hasOwnProperty('properties')){
                     if (component.properties.hasOwnProperty(camVariableNameKey)) {
                         let defaultValue = _.get(variablesStore, component.properties[camVariableNameKey])
                         let key = component.key
 
-                        if (component.properties[stringifyKey] === "true"){
+                        if (component.properties[stringifyKey] === 'true'){
                             // @TODO do a check if the value is a object!
                             defaultValue = JSON.stringify(defaultValue)
                         }
@@ -192,10 +207,53 @@
             variableManager.createVariable(submissionVariable);
         }
 
+        /**
+         * Used to clean buttons in schemas / typically subforms
+         * Hides Submit buttons
+         * Hides all buttons if hideAllButtons equals 'true' (string)
+         *
+         */
+        function cleanButtons(schema, hideAllButtons){
+            FormioUtils.eachComponent(schema.components, component => {
+                if (component.type === 'button') {
+                    if (hideAllButtons === 'true') {
+                        component.hidden = true
+                    } else {
+                        if (component.action === 'submit' || !component.action) {
+                            component.hidden = true
+                        }
+                    }
+                }
+            })
+        }
+
+        /**
+         * Injects subForm components into container form components that have the subForm property
+         * @param schema
+         * @returns {Promise<undefined>}
+         */
+        function setupContainerSubForms(schema){
+            return new Promise(resolve => {
+                let promises = []
+                FormioUtils.eachComponent(schema.components, component => {
+                    if (component.type === 'container' && _.has(component.properties, subFormKey)){
+                        let sub = getSchema(camForm.processDefinitionId, '?' + component.properties[subFormKey]).then(subSchema => {
+                            cleanButtons(subSchema, component.properties[subFormHideButtonsKey])
+                            component.components = component.components.concat(subSchema.components)
+                        })
+                        promises.push(sub)
+                    }
+                }, true)
+                Promise.all(promises).then(() => {
+                    resolve()
+                })
+            })
+        }
+
 
         camForm.on('form-loaded', function () {
             $scope.options.hideCompleteButton = true
-            getSchema().then(schema => {
+            getSchema(camForm.processDefinitionId, camForm.options.formUrl).then(schema => {
                 let varNames = []
                 FormioUtils.eachComponent(schema.components, component => {
                     if (_.has(component.properties, fetchVariableKey)){
@@ -213,6 +271,10 @@
                     return details
                 })
 
+            }).then(details => {
+                return setupContainerSubForms(details.schema).then(() => {
+                    return details
+                })
             }).then(details => {
                 // TODO add a loading text
                 try {

@@ -2,14 +2,64 @@
   "display": "form",
   "components": [
     {
-      "label": "First Name",
-      "tableView": true,
-      "key": "firstName",
+      "label": "Submission (Read-Only)",
+      "hideLabel": false,
+      "disabled": true,
+      "tableView": false,
+      "key": "previousSubmission",
       "properties": {
         "fetchVariable": "postProcessed_submission",
-        "camVariableName": "postProcessed_submission.data.firstName"
+        "camVariableName": "postProcessed_submission.data",
+        "subform": "deployment=MyStartForm.json",
+        "hideButtons": "true"
       },
-      "type": "textfield",
+      "type": "container",
+      "input": true,
+      "components": []
+    },
+    {
+      "label": "HTML",
+      "tag": "h3",
+      "attrs": [
+        {
+          "attr": "",
+          "value": ""
+        }
+      ],
+      "content": "Review:",
+      "refreshOnChange": false,
+      "tableView": false,
+      "key": "html",
+      "type": "htmlelement",
+      "input": false
+    },
+    {
+      "label": "Review Outcome?",
+      "optionsLabelPosition": "right",
+      "inline": false,
+      "tableView": false,
+      "values": [
+        {
+          "label": "Approved",
+          "value": "approved",
+          "shortcut": ""
+        },
+        {
+          "label": "Denied",
+          "value": "denied",
+          "shortcut": ""
+        }
+      ],
+      "key": "reviewOutcome",
+      "type": "radio",
+      "input": true
+    },
+    {
+      "label": "Comments",
+      "autoExpand": false,
+      "tableView": true,
+      "key": "comments",
+      "type": "textarea",
       "input": true
     },
     {

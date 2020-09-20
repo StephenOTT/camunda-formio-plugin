@@ -46,6 +46,30 @@
       ]
     },
     {
+      "type": "day",
+      "key": "birthdate",
+      "label": "Birthdate",
+      "input": true,
+      "dayFirst": false,
+      "fields": {
+        "year": {
+          "required": false,
+          "placeholder": "",
+          "type": "text"
+        },
+        "month": {
+          "required": false,
+          "placeholder": "",
+          "type": "select"
+        },
+        "day": {
+          "required": false,
+          "placeholder": "",
+          "type": "text"
+        }
+      }
+    },
+    {
       "type": "select",
       "key": "select",
       "label": "Favorite Color",
@@ -120,30 +144,6 @@
       "description": "Enter Due Date",
       "validate": {
         "required": true
-      }
-    },
-    {
-      "type": "day",
-      "key": "birthdate",
-      "label": "Birthdate",
-      "input": true,
-      "dayFirst": false,
-      "fields": {
-        "year": {
-          "required": false,
-          "placeholder": "",
-          "type": "text"
-        },
-        "month": {
-          "required": false,
-          "placeholder": "",
-          "type": "select"
-        },
-        "day": {
-          "required": false,
-          "placeholder": "",
-          "type": "text"
-        }
       }
     },
     {

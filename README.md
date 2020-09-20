@@ -311,3 +311,44 @@ The plugin has the following parameters:
    1. `validationUrl` : The validation url to send submissions to.  Defaults to `localhost:8081/validate`.
    1. `validationTimeout` : The milliseconds to wait before timeout of the Validation Url HTTP request.  Defaults to `10000` 10 seconds.
    1. `validationHandler` : The bean instance that will execute the Formio Validation.  Defaults to an instance of `SimpleFormioValidationHandler.class`.  Override this configuration if you have special validation handling requirements.
+
+
+## Subforms / Nested Forms
+
+You can nest forms using the `container` component.  The `container` component is used to gather form values into a nested 
+JSON object.
+
+### Subform usage
+
+1. Add a container to your form
+1. In the api properties tab set a component property of:
+   1. Key: `subform` value: `deployment=mySubForm.json` or `path=/my/path/mySubForm.json`
+
+The `subform` property value uses the same format as the formkey parameters.
+
+Typical use cases is to set the container to "disabled", then the nested form is read-only and you display the 
+form of a previous submission.
+
+### Hide Subform buttons
+
+The submit button will be hidden by default.  If you want to hide all buttons on your subform add a additional property 
+to the container:
+
+ - Key: `hideButtons`  value: `true` (this should be a string value)
+
+### Subform Pre-population
+
+If you want to populate the subform with values from a variable, use the `camVariableName` property.  You can access previous 
+form submissions with Key: `camVariableName`  value: `myPreviousSubmissionJsonVariable.data`. The data object, which is what 
+Formio places all submission data into, will then be populated into the subform.
+
+
+## File Uploads
+
+Use the `file` component, and use the Base64 storage format.  The file will be uploaded as part of the JSON submission to camunda.
+
+You can display you file upload in a formio form by returning the base64 value into a readonly/disabled form (such as using subforms).
+
+Typical use case would be to upload the file as JSON/base64 as part of the form submission, and then handle transitive modifications of the file 
+into other storage formats, and drop the base64 value from the submission / replace with other values pointing to a long term 
+storage format (such as a blob/file storage container) 
