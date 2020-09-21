@@ -155,7 +155,7 @@
     {
       "type": "button",
       "label": "Submit",
-      "key": "submit",
+      "key": "submitForm",
       "disableOnInvalid": true,
       "input": true,
       "tableView": false

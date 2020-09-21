@@ -117,14 +117,46 @@ Local Builder: Deploy Webapp and access a local builder at: `http://..../forms/b
 Hosted Builder: [https://formio.github.io/formio.js/app/builder](https://formio.github.io/formio.js/app/builder)
 
 
-### Submitting a Form as a BPMN Error
+## Trigger 'BPMN Errors'
 
-Coming soon!
+Support is provided to trigger interrupting BPMN Errors:
 
+Trigger a formio event with the name `bpmn-error` (typically with a button: set the button event to `bpmn-error`)
 
-### Submitting a Form as a BPMN Escalation
+The default error code is `default`.  To set a custom error code, create a variable in the formio submission with the key 
+`_errorCode`.  Typical use cases are to use a `text` component or a `hidden` component.
 
-Coming soon!
+No error message is submitted by default.  To set a custom error message, create a variable in the formio submission with the key 
+`_errorMessage`.  Typical use cases are to use a `text` component or a `hidden` component.
+
+**The submission variable created through the bpmn-error cannot be validated using the formio server validator: this is a limitation in Camunda**
+
+## Trigger 'BPMN Escalations'
+
+Support is provided to trigger interrupting and non-interrupting BPMN Escalations.  Note that Camunda's form API does not 
+make a distinction between interrupting and non-interrupting escalation events and therefore some best practices are implemented:
+
+The escalation code is `default`.  To set a custom escalation code, create a variable in the formio submission with the key 
+`_escalationCode`.  Typical use cases are to use a `text` component or a `hidden` component.
+
+**The submission variable created through the bpmn-escalation cannot be validated using the formio server validator: this is a limitation in Camunda**
+
+### Interrupting BPMN Escalations
+
+To trigger BPMN Escalation that is designed to be used with a interrupting BPMN Escalation boundary event:
+
+Trigger a formio event with the name `bpmn-escalation` (typically with a button: set the button event to `bpmn-escalaton`)
+
+### Non-Interrupting BPMN Escalations
+
+To trigger BPMN Escalation that is designed to be used with a non-interrupting BPMN Escalation boundary event:
+
+Trigger a formio event with the name `bpmn-escalation-noninterrupt` (typically with a button: set the button event to `bpmn-escalaton-noninterrupt`)
+
+A non-interrupting escalation means the user task will remain in the task list, and the submission variable name will be given a suffix of `_escalation`. 
+The suffix is used to ensure if/when the user task is normally completed, the submission variable created through the 
+user task completion does not overwrite the submission variable created through escalation.
+
 
 
 ## Deploying your Forms

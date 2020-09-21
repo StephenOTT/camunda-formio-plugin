@@ -82,7 +82,7 @@
       "input": true
     },
     {
-      "label": "Submit as Escalation",
+      "label": "Submit as Escalation (event: bpmn-escalation)",
       "action": "event",
       "showValidations": true,
       "theme": "secondary",
@@ -90,6 +90,24 @@
       "key": "bpmn-escalation",
       "type": "button",
       "event": "bpmn-escalation",
+      "input": true
+    },
+    {
+      "label": "Submit as Escalation (event: bpmn-escalation-noninterrupt)",
+      "action": "event",
+      "showValidations": true,
+      "theme": "secondary",
+      "tableView": false,
+      "key": "bpmn-escalation-noninterrupt",
+      "type": "button",
+      "event": "bpmn-escalation-noninterrupt",
+      "input": true
+    },
+    {
+      "label": "_escalationCode",
+      "tableView": true,
+      "key": "_escalationCode",
+      "type": "textfield",
       "input": true
     }
   ]

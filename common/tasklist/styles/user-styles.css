@@ -5,3 +5,7 @@
 .flatpickr-calendar.open {
     display:inline-block;
 }
+
+.hide-form-actions {
+    display: none;
+}

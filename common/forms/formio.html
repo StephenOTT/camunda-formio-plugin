@@ -8,8 +8,6 @@
 
     <script cam-script type= "text/form-script">
 <!--    <script>-->
-
-
         let submissionSuffix = '_submission'
         let startFormVariableName = 'startForm' + submissionSuffix
         let formLocationDeploymentParam = 'deployment'
@@ -25,6 +23,14 @@
         let firstSubmit = true
         let subFormKey = 'subform'
         let subFormHideButtonsKey = 'hideButtons'
+        let bpmnEscalationCodeKey = "_escalationCode"
+        let bpmnEscalationDefaultEscalationCode = "default"
+        let bpmnEscalationNonInterruptSuffixDefault = "_escalation"
+        let bpmnEscalationInterruptSuffixDefault = "_escalation"
+        let bpmnErrorCodeKey = "_errorCode"
+        let bpmnErrorDefaultErrorCode = "default"
+        let bpmnErrorMessageKey = "_errorMessage"
+        let bpmnErrorDefaultErrorMessage = null
 
         function getParameterByName(name, url) {
             if (!url) url = window.location.href;
@@ -34,6 +40,29 @@
             if (!results) return null;
             if (!results[2]) return '';
             return decodeURIComponent(results[2].replace(/\+/g, ' '));
+        }
+
+        function isStartForm(camForm){
+            return camForm.taskId == null;
+        }
+
+        function hideStartFormStartButton(){
+            let element = document.querySelector("body > div.modal.fade.ng-scope.ng-isolate-scope.in > div > div > div.modal-footer.ng-scope > div > div.col-xs-8 > button.btn.btn-primary.ng-binding")
+            element.classList.add("hide-form-actions")
+        }
+
+        function hideUserTaskFormCompleteButton(){
+            let elements = document.getElementsByClassName("form-actions")
+            _.forEach(elements, element => {
+                element.classList.add("hide-form-actions")
+            })
+        }
+
+        function clearVariableManager() {
+            let variables = $scope.camForm.variableManager.variables;
+            for (let v in variables) {
+                $scope.camForm.variableManager.destroyVariable(v);
+            }
         }
 
         /**
@@ -180,7 +209,10 @@
             return true;
         }
 
-        function setupSubmissionVariables(submission) {
+        /**
+         * suffix is used for use cases like async/non-interrupting escalations
+         */
+        function setupSubmissionVariables(submission, suffix) {
             let customSubmissionVariableName = getParameterByName(submissionVariableNameParam, camForm.options.formUrl);
             let transientVariableParamValue = getParameterByName(submitAsTransientVariableParam, camForm.options.formUrl);
 
@@ -197,6 +229,8 @@
             if (customSubmissionVariableName != null) {
                 submissionVariable.name = customSubmissionVariableName
             }
+
+            submissionVariable.name += (suffix != null) ? suffix : ''
 
             if (transientVariableParamValue != null) {
                 if (transientVariableParamValue === 'true') {
@@ -276,7 +310,12 @@
                     return details
                 })
             }).then(details => {
-                // TODO add a loading text
+                if (isStartForm($scope.camForm)){
+                    hideStartFormStartButton()
+                } else {
+                    hideUserTaskFormCompleteButton()
+                }
+
                 try {
                     Formio.createForm(document.getElementById(formioDivId), details.schema)
                         .then(function (form) {
@@ -286,13 +325,14 @@
                             form.submission = getDefaultValues($scope.camForm.formioVariables, form.submission.data, form.schema)
 
                             camForm.on('submit-failed', function (evt, res) {
+                                clearVariableManager()
                                 console.log("Camunda-Formio Submission Validation Error")
                                 let error = res[0].message
 
                                 let formioError = (function() {
-                                    let content = error.slice(error.indexOf(': ') + 1)
-                                    if (isJsonString(error)){
-                                        return {validationError: true, error: JSON.stringify(content) }
+                                    let content = error.slice(error.indexOf(':') + 1)
+                                    if (isJsonString(content)){
+                                        return {validationError: true, error: JSON.parse(content) }
                                     } else {
                                         return {validationError: false, error: content}
                                     }
@@ -309,23 +349,101 @@
 
                             camForm.on('submit-success', function (evt) {
                                 $scope.formioForm.emit('submitDone', $scope.formioSubmission)
-                                // $scope.formioSubmitPromise.resolve()
+                            })
+
+                            camForm.on('error-success', function() {
+                                angular.element('.task-card').scope().dismissTask()
+                                // https://github.com/camunda/camunda-bpm-webapp/blob/master/ui/cockpit/src/modules/utils/notifications.js#L28-L37
+                                inject(['Notifications', function(Notifications) {
+                                    let taskId = $scope.camForm.taskId
+
+                                    Notifications.addMessage({
+                                        type: 'info',
+                                        duration: 5000,
+                                        status: 'BPMN Error Created',
+                                        message: 'A BPMN Error was triggered for Task ' + taskId
+                                    });
+                                }]);
+                            })
+
+                            camForm.on('escalation-success', function() {
+                                if ($scope.camForm.escalationInterrupt){
+                                    angular.element('.task-card').scope().dismissTask()
+                                } else {
+                                    // Clear variable manager if it was a non-interrupting escalation
+                                    clearVariableManager()
+                                }
+                                // https://github.com/camunda/camunda-bpm-webapp/blob/master/ui/cockpit/src/modules/utils/notifications.js#L28-L37
+                                inject(['Notifications', function(Notifications) {
+                                    let taskId = $scope.camForm.taskId
+
+                                    Notifications.addMessage({
+                                        type: 'info',
+                                        duration: 5000,
+                                        status: 'Escalation Created',
+                                        message: 'Escalation was triggered for Task ' + taskId
+                                    });
+                                }]);
+                            })
+
+                            camForm.on('escalation-failed', function (evt, res) {
+                                console.log('Camunda-Formio Escalation failed: ' + res[0])
+                                clearVariableManager()
+                                $scope.formioForm.showErrors(res[0])
+
+                                $scope.formioForm.emit('submitError')
+                            });
+
+                            camForm.on('error-failed', function (evt, res) {
+                                console.log('Camunda-Formio BPMN Error failed: ' + res[0])
+                                clearVariableManager()
+                                $scope.formioForm.showErrors(res[0])
+
+                                $scope.formioForm.emit('submitError')
+                            });
+
+                            form.on('bpmn-escalation', submission => {
+                                setupSubmissionVariables(submission, bpmnEscalationInterruptSuffixDefault)
+                                $scope.camForm.escalationInterrupt = true
+                                if (_.has(submission, bpmnEscalationCodeKey) && !_.isEmpty(submission[bpmnEscalationCodeKey])){
+                                    $scope.camForm.escalate(submission[bpmnEscalationCodeKey])
+                                } else {
+                                    $scope.camForm.escalate(bpmnEscalationDefaultEscalationCode)
+                                }
+                            })
+
+                            form.on('bpmn-escalation-noninterrupt', submission => {
+                                setupSubmissionVariables(submission, bpmnEscalationNonInterruptSuffixDefault)
+                                $scope.camForm.escalationInterrupt = false
+                                if (_.has(submission, bpmnEscalationCodeKey) && !_.isEmpty(submission[bpmnEscalationCodeKey])){
+                                    $scope.camForm.escalate(submission[bpmnEscalationCodeKey])
+                                } else {
+                                    $scope.camForm.escalate(bpmnEscalationDefaultEscalationCode)
+                                }
+                            })
+
+                            form.on('bpmn-error', submission => {
+                                setupSubmissionVariables(submission)
+
+                                let errorMessage = (() => {
+                                    if (_.has(submission, bpmnErrorMessageKey)){
+                                        return submission[bpmnErrorMessageKey]
+                                    } else {
+                                        return bpmnErrorDefaultErrorMessage
+                                    }
+                                })()
+
+                                if (_.has(submission, bpmnErrorCodeKey)){
+                                    $scope.camForm.error(submission[bpmnEscalationCodeKey], errorMessage)
+                                } else {
+                                    $scope.camForm.error(bpmnErrorDefaultErrorCode, errorMessage)
+                                }
                             })
 
                             form.on('submit', submission => {
                                 setupSubmissionVariables(submission)
 
-                                if (submission['@bpmn-escalation'] === true && submission['@bpmn-error'] === true) {
-                                    throw "cannot have a bpmn-escalation & a bpmn-error at the same time."
-                                    //https://docs.camunda.org/manual/7.12/reference/embedded-forms/controls/bpmn-buttons/
-                                } else if (submission['@bpmn-error'] === true) {
-
-                                } else if (submission['@bpmn-escalation'] === true) {
-
-                                } else {
-                                    $scope.complete()
-                                }
-
+                                $scope.complete()
                             })
 
                         });
