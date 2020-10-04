@@ -21,7 +21,7 @@ idea {
 
 allprojects {
 
-    version = "1.3"
+    version = "1.4"
     group = "camunda-formio-plugin"
 
     repositories {
