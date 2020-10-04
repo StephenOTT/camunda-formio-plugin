@@ -2,12 +2,29 @@
 
 Provides client-side and server-side integration for using Camunda Embedded Forms with Formio Forms.
 
-Using Formio for a Start Form:
+![](./doc/FormBuild1.png)
+
+![](./doc/StartForm1.png)
+
+![](./doc/UT1.png)
+
+![](./doc/UT1.1.png)
+
+![](./doc/UT1.2.png)
+
+## What does it do?
+
+Allows you to configure *start-event* forms and *user-task* forms with a `formkey` that will load formio forms in Camunda Tasklist webapp.
+
+
+## How do I set it up?!
+
+Configuring Formio for a Start Form:
 
 ![Start Form](./doc/StartForm-Config.png)
 
 
-Using Formio for User Tasks:
+Configuring Formio for User Tasks:
 
 ![User Task Form](./doc/UserTask-Config.png)
 
@@ -15,9 +32,22 @@ If you want to add server side validation, you add a Validation Constraint with 
 section for more details.
 
 
-## What does it do?
+## Installation
 
-Allows you to configure *start-event* forms and *user-task* forms with a `formkey` that will load formio forms in Camunda Tasklist webapp.
+### Camunda SpringBoot Deployment
+
+See the `springboot` folder for a example of the deployment
+
+### Typical Camunda Deployment
+
+See the `docker` folder for an example of the deployment using the Camunda Tomcat distribution
+
+
+## Building Forms:
+
+Local Builder: Deploy Webapp and access a local builder at: `http://..../forms/builder.html`
+
+Hosted Builder: [https://formio.github.io/formio.js/app/builder](https://formio.github.io/formio.js/app/builder)
 
 
 ## Configure the BPMN
@@ -84,17 +114,6 @@ Examples:
 1. `embedded:/forms/formio.html?path=/forms/MyStartForm.json` (where the MyStartForm.json was placed in the `src/main/webapp/forms` folder)
 
 
-## Installation
-
-### Camunda SpringBoot Deployment
-
-See the `springboot` folder for a example of the deployment
-
-### Typical Camunda Deployment
-
-See the `docker` folder for an example of the deployment using the Camunda Tomcat distribution
-
-
 ## Submission Storage
 
 When a successful submission occurs, a `json` variable will be created as a Process Instance Variable. 
@@ -108,13 +127,6 @@ Example in a gateway expression: `${someSubmission.prop('data').prop('someFieldK
 
 Very often the taskID (which is typically a UUID) will not be very meaningful.  If you require more meaningful variable names 
 consider using the `var` parameter to set a custom variable name or use the Activity ID (the `id` property when you are in the Modeler on a user task activity).
-
-
-## Building Forms:
-
-Local Builder: Deploy Webapp and access a local builder at: `http://..../forms/builder.html`
-
-Hosted Builder: [https://formio.github.io/formio.js/app/builder](https://formio.github.io/formio.js/app/builder)
 
 
 ## Trigger 'BPMN Errors'
@@ -156,7 +168,6 @@ Trigger a formio event with the name `bpmn-escalation-noninterrupt` (typically w
 A non-interrupting escalation means the user task will remain in the task list, and the submission variable name will be given a suffix of `_escalation`. 
 The suffix is used to ensure if/when the user task is normally completed, the submission variable created through the 
 user task completion does not overwrite the submission variable created through escalation.
-
 
 
 ## Deploying your Forms

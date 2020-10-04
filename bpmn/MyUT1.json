@@ -2,6 +2,7 @@
   "display": "form",
   "components": [
     {
+      "title": "Submission (Read-only)",
       "collapsible": false,
       "key": "panel",
       "type": "panel",
@@ -10,7 +11,7 @@
       "tableView": false,
       "components": [
         {
-          "label": "Submission (Read-Only)",
+          "label": "Submission",
           "disabled": true,
           "tableView": false,
           "key": "previousSubmission",
