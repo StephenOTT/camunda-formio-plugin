@@ -317,6 +317,7 @@
                 }
 
                 try {
+                    Formio.Templates.framework = 'bootstrap3'
                     Formio.createForm(document.getElementById(formioDivId), details.schema)
                         .then(function (form) {
                             $scope.formioForm = form
