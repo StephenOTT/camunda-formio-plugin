@@ -103,7 +103,7 @@ The following are the parameters that can be passed in the `formKey`:
 | Parameter | Required? | Default | Description |
 |---------------|-------------------|--------------|-----------------------|
 |deployment=    | Yes or use path= | - | The .json file name in the deployment created through the API. |
-|path=          | Yes or use deployment= | - | The file system path to the .json file. |
+|path=          | Yes or use deployment= | - | The file system path to the .json file. **Must start with a `/`** |
 |transient=     | No | false | If true, then variable will be submitted as Transient, and thus not saved to database.  Use a Script Task or listener in the transaction to post-process the submission into the desired variable. |
 |var=           | No | if start form then "startForm_submission", if user task then "`[taskId]`_submission"| Define a custom variable name for the form submission.  Will be submitted as a Process Variable.|
 
@@ -111,7 +111,7 @@ Examples:
 
 1. `embedded:/forms/formio.html?deployment=MyUT1.json?transient=true&var=myCustomSubmission`
 1. `embedded:/forms/formio.html?deployment=MyUT1.json?var=UT1-Submission`
-1. `embedded:/forms/formio.html?path=/forms/MyStartForm.json` (where the MyStartForm.json was placed in the `src/main/webapp/forms` folder)
+1. `embedded:/forms/formio.html?path=/forms/MyStartForm.json` (where the MyStartForm.json was placed in the `src/main/webapp/forms` folder.  **Make sure your path starts with a `/`**)
 
 
 ## Submission Storage

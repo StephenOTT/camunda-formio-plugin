@@ -65,3 +65,10 @@ tasks.withType<ProcessResources> {
         into("public/forms")
     }
 }
+
+tasks.withType<ProcessResources> {
+    // Setup of the formio customizations into the required locations within the springboot app
+    from("../bpmn"){
+        into("public/forms")
+    }
+}
