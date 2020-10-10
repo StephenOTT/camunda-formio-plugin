@@ -38,6 +38,7 @@
             <plugin>
                 <class>com.github.stephenott.camunda.formio.FormioFormFieldValidatorProcessEnginePlugin</class>
             </plugin>
+
             <plugin>
                 <class>com.github.stephenott.camunda.tasks.forms.command.GetFormVariablesSecurityProcessEnginePlugin</class>
             </plugin>

@@ -397,3 +397,27 @@ You can display you file upload in a formio form by returning the base64 value i
 Typical use case would be to upload the file as JSON/base64 as part of the form submission, and then handle transitive modifications of the file 
 into other storage formats, and drop the base64 value from the submission / replace with other values pointing to a long term 
 storage format (such as a blob/file storage container) 
+
+## Get-Form-Variables Command Security Plugin
+
+The plugin `GetFormVariablesSecurityProcessEnginePlugin.class` provides variable security using Camunda Extension 
+Properties on a User Task.
+
+Plugin full path: `com.github.stephenott.camunda.tasks.forms.command.GetFormVariablesSecurityProcessEnginePlugin`
+
+The plugin provides two types of variable security:
+
+1. `allowed-variables` : a comma separated list of variable names that can be accessed using the endpoint `GET /task/{id}/form-variables` or the java api (getFormVariables).
+1. `restricted-variables` : a comma separated list of variable names that cannot be accessed using the endpoint `GET /task/{id}/form-variables` or the java api (getFormVariables).
+
+`allowed-variables` is used to control the exact list of variables that can be accessed.  Any variables that are not part of this list will be removed from the result.  No error will be thrown.
+
+`restricted-variables` is used to control which variables cannot be accessed.  Any variables that are part of this will be removed from the result.  No error will be thrown.
+
+Example:
+
+![allowed-variables](./doc/ut-allowed-variables.png)
+
+![restricted-variables](./doc/ut-restricted-variables.png)
+
+ 
