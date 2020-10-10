@@ -104,6 +104,7 @@
                         if (formLocDeployment() === false && formLocPath() === false) {
                             //@TODO bubble this to formio errors
                             console.error("No valid form json location was found for formio. (could not deployment or path params in form key)")
+                            showNotification('error', 5000, "Invalid Form JSON", "No valid form json location was found for formio. (could not deployment or path params in form key)")
                         }
 
                         let formName = formLocDeployment() === true ? formNameDeployment : formNamePath
@@ -119,6 +120,7 @@
 
                                 if (formResource === undefined) {
                                     console.error('Unable to find resource with name: ' + details.formName);
+                                    showNotification('error', 5000, "Cannot find resource", "Unable to load form: unable to find resource in deployment with name " + details.formName)
                                 }
 
                                 return {deploymentId: details.deploymentId, resourceId: formResource.id}
@@ -138,6 +140,7 @@
 
                         } else {
                             console.error("Unknown form type was provided: " + details.formType)
+                            showNotification('error', 5000, "Unknown Form Type", "Unable to load form: unknown form type was provided: " + details.formType)
                         }
                     });
                 }]);
@@ -155,20 +158,27 @@
                         let variables = {}
                         let promises = []
 
-                        _.forEach(varNames, function (varName) {
-                            if (!variables.hasOwnProperty(varName)) {
-                                let promise = $http.get(Uri.appUri('engine://engine/:engine/task/' + taskId + '/variables/' + varName), {params: {deserializeValue: false}})
+                        // _.forEach(varNames, function (varName) {
+                        //     if (!variables.hasOwnProperty(varName)) {
+                                let promise = $http.get(Uri.appUri('engine://engine/:engine/task/' + taskId + '/form-variables/'), {
+                                    params: {
+                                        deserializeValues: false,
+                                        variableNames: varNames.join(",")
+                                    }
+                                })
                                 promises.push(promise)
                                 promise.then(response => {
-
-                                    if (response.data.type === 'Json') {
-                                        response.data.value = JSON.parse(response.data.value)
-                                    }
-                                    variables[varName] = response.data.value
+                                    _.forOwn(response.data, function(value, key) {
+                                        if (value.type === 'Json') {
+                                            value.value = JSON.parse(value.value)
+                                        }
+                                        variables[key] = value.value
+                                    } );
+                                    // variables = response.data
                                 })
-                            }
+                            // }
 
-                        })
+                        // })
                         Promise.all(promises).then(function () {
                             resolve(variables)
                         })
@@ -180,6 +190,17 @@
             })
         }
 
+        function showNotification(type, duration, status, message){
+            inject(['Notifications', function(Notifications) {
+                Notifications.addMessage({
+                    type: type,
+                    duration: duration,
+                    status: status,
+                    message: message
+                });
+            }]);
+        }
+
         function getDefaultValues(variablesStore, submissionObject, schema){
             let defaultValues = {data: {}}
             FormioUtils.eachComponent(schema.components, component => {
@@ -187,6 +208,12 @@
                     if (component.properties.hasOwnProperty(camVariableNameKey)) {
                         let defaultValue = _.get(variablesStore, component.properties[camVariableNameKey])
                         let key = component.key
+
+                        // @TODO review how to make this appear more quickly
+                        if (defaultValue === undefined){
+                            showNotification('error', null, 'Unable to find default value in variables',
+                            'form-variables data did not return expected default value in variables in key ' + component.properties[camVariableNameKey] )
+                        }
 
                         if (component.properties[stringifyKey] === 'true'){
                             // @TODO do a check if the value is a object!

@@ -70,7 +70,10 @@
       "tableView": true,
       "key": "comments",
       "type": "textarea",
-      "input": true
+      "input": true,
+      "properties": {
+        "camVariableName": "postProcessed_submission.data.thisIsAExpectedErrorToDemoDefaultValueErrors"
+      }
     },
     {
       "type": "button",

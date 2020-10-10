@@ -19,6 +19,9 @@
             </camunda:validation>
           </camunda:formField>
         </camunda:formData>
+        <camunda:properties>
+          <camunda:property name="restricted-variables" value="neverSeeVar" />
+        </camunda:properties>
       </bpmn:extensionElements>
       <bpmn:incoming>Flow_0069xxd</bpmn:incoming>
       <bpmn:outgoing>Flow_18xtnen</bpmn:outgoing>
@@ -37,7 +40,9 @@
       <bpmn:incoming>Flow_1ax32ut</bpmn:incoming>
       <bpmn:outgoing>Flow_0eob9zj</bpmn:outgoing>
       <bpmn:script>var hasSubmission = execution.hasVariable("submission")
-execution.setVariable('postProcessed_submission', execution.getVariable('submission'))</bpmn:script>
+execution.setVariable('postProcessed_submission', execution.getVariable('submission'))
+
+execution.setVariable('neverSeeVar', 'this variable should never be returned on the Typical Form with Service Validation task as it is restricted in the extension properties')</bpmn:script>
     </bpmn:scriptTask>
     <bpmn:sequenceFlow id="Flow_0069xxd" sourceRef="Gateway_0u22n92" targetRef="Activity_1xq7c62" />
     <bpmn:sequenceFlow id="Flow_0vjjadb" sourceRef="Gateway_0u22n92" targetRef="Activity_16j3pe3" />
@@ -156,9 +161,15 @@ execution.setVariable('postProcessed_submission', execution.getVariable('submiss
   <bpmn:escalation id="Escalation_07acmmp" name="custom-escalation" escalationCode="ce1" />
   <bpmndi:BPMNDiagram id="BPMNDiagram_1">
     <bpmndi:BPMNPlane id="BPMNPlane_1" bpmnElement="someProcess1">
-      <bpmndi:BPMNShape id="TextAnnotation_19wn5bt_di" bpmnElement="TextAnnotation_19wn5bt">
-        <dc:Bounds x="210" y="450" width="140" height="82" />
-      </bpmndi:BPMNShape>
+      <bpmndi:BPMNEdge id="Flow_0dsu483_di" bpmnElement="Flow_0dsu483">
+        <di:waypoint x="590" y="120" />
+        <di:waypoint x="622" y="120" />
+      </bpmndi:BPMNEdge>
+      <bpmndi:BPMNEdge id="Flow_1623iq8_di" bpmnElement="Flow_1623iq8">
+        <di:waypoint x="440" y="595" />
+        <di:waypoint x="440" y="120" />
+        <di:waypoint x="490" y="120" />
+      </bpmndi:BPMNEdge>
       <bpmndi:BPMNEdge id="Flow_1ius0d1_di" bpmnElement="Flow_1ius0d1">
         <di:waypoint x="760" y="630" />
         <di:waypoint x="812" y="630" />
@@ -257,15 +268,6 @@ execution.setVariable('postProcessed_submission', execution.getVariable('submiss
         <di:waypoint x="188" y="620" />
         <di:waypoint x="240" y="620" />
       </bpmndi:BPMNEdge>
-      <bpmndi:BPMNEdge id="Flow_1623iq8_di" bpmnElement="Flow_1623iq8">
-        <di:waypoint x="440" y="595" />
-        <di:waypoint x="440" y="120" />
-        <di:waypoint x="490" y="120" />
-      </bpmndi:BPMNEdge>
-      <bpmndi:BPMNEdge id="Flow_0dsu483_di" bpmnElement="Flow_0dsu483">
-        <di:waypoint x="590" y="120" />
-        <di:waypoint x="622" y="120" />
-      </bpmndi:BPMNEdge>
       <bpmndi:BPMNShape id="Event_0emfvgy_di" bpmnElement="Event_0emfvgy">
         <dc:Bounds x="152" y="602" width="36" height="36" />
       </bpmndi:BPMNShape>
@@ -338,10 +340,9 @@ execution.setVariable('postProcessed_submission', execution.getVariable('submiss
       <bpmndi:BPMNShape id="Activity_188iga8_di" bpmnElement="Activity_0ngrvxl">
         <dc:Bounds x="490" y="80" width="100" height="80" />
       </bpmndi:BPMNShape>
-      <bpmndi:BPMNEdge id="Association_04d5fx0_di" bpmnElement="Association_04d5fx0">
-        <di:waypoint x="287" y="580" />
-        <di:waypoint x="283" y="532" />
-      </bpmndi:BPMNEdge>
+      <bpmndi:BPMNShape id="TextAnnotation_19wn5bt_di" bpmnElement="TextAnnotation_19wn5bt">
+        <dc:Bounds x="210" y="450" width="140" height="82" />
+      </bpmndi:BPMNShape>
       <bpmndi:BPMNShape id="Event_1p2gfns_di" bpmnElement="Event_1ugcuo2">
         <dc:Bounds x="572" y="692" width="36" height="36" />
       </bpmndi:BPMNShape>
@@ -351,6 +352,10 @@ execution.setVariable('postProcessed_submission', execution.getVariable('submiss
       <bpmndi:BPMNShape id="Event_0rfidvh_di" bpmnElement="Event_19kscew">
         <dc:Bounds x="472" y="772" width="36" height="36" />
       </bpmndi:BPMNShape>
+      <bpmndi:BPMNEdge id="Association_04d5fx0_di" bpmnElement="Association_04d5fx0">
+        <di:waypoint x="287" y="580" />
+        <di:waypoint x="283" y="532" />
+      </bpmndi:BPMNEdge>
     </bpmndi:BPMNPlane>
   </bpmndi:BPMNDiagram>
 </bpmn:definitions>
