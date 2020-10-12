@@ -1,13 +1,13 @@
 import org.jetbrains.kotlin.gradle.tasks.KotlinCompile
 
 plugins {
-    val kotlinVersion = "1.3.50"
+    val kotlinVersion = "1.4.10"
     application
     id("com.github.johnrengelman.shadow") version "5.1.0" apply false
     id("org.jetbrains.kotlin.jvm") version kotlinVersion apply false
     id("org.jetbrains.kotlin.kapt") version kotlinVersion apply false
     id("org.jetbrains.kotlin.plugin.allopen") version kotlinVersion apply false
-    id("org.jetbrains.kotlin.plugin.spring") version "1.3.72" apply false
+    id("org.jetbrains.kotlin.plugin.spring") version "1.4.10" apply false
     id("idea")
 }
 
