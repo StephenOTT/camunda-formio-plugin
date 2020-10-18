@@ -1,0 +1,11 @@
+FROM oracle/graalvm-ce:20.2.0
+
+RUN mkdir -p /usr/src
+
+WORKDIR /usr
+
+ADD https://github.com/StephenOTT/Form-Validation-Server/releases/download/v0.1/app.gz app.gz
+
+RUN tar xvf app.gz
+
+CMD node app/src/server.js

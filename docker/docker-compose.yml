@@ -1,0 +1,29 @@
+version: '3.7'
+
+services:
+  camunda-server:
+    build:
+      context: .
+      dockerfile: Dockerfile-camunda
+    ports:
+      - "8080:8080"
+    restart: always
+    networks:
+      - backend
+
+  formio-validation-server:
+    build:
+      context: .
+      dockerfile: Dockerfile-formio-validation-server
+    ports:
+      - "8081:8081"
+    restart: always
+    environment:
+      PORT: 8081
+    depends_on:
+      - camunda-server
+    networks:
+      - backend
+
+networks:
+  backend:

@@ -37,6 +37,9 @@
 
             <plugin>
                 <class>com.github.stephenott.camunda.formio.FormioFormFieldValidatorProcessEnginePlugin</class>
+                <properties>
+                    <property name="validationUrl">http://formio-validation-server:8081/validate</property>
+                </properties>
             </plugin>
 
             <plugin>

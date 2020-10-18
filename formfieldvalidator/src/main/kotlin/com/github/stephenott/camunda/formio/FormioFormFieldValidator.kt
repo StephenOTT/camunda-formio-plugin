@@ -57,7 +57,7 @@ class FormioFormFieldValidator: FormFieldValidator {
                 }
             }
 
-            plugin.validationHandler.validate(formSchema, submission)
+            plugin.validationHandler!!.validate(formSchema, submission)
 
         } else {
             throw FormFieldConfigurationException("Unsupported parameter. Only Deployment parameter is currently supported for Formio server validation", "Unsupported parameter. Only Deployment parameter is currently supported for Formio server validation")
