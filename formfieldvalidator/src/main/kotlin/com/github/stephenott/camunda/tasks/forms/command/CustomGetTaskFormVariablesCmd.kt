@@ -18,12 +18,13 @@ class CustomGetTaskFormVariablesCmd(taskId: String, variableNames: MutableCollec
         //@TODO add debug info about variables being filtered
 
         val utModelInstance = commandContext.taskManager.findTaskById(resourceId).bpmnModelElementInstance
-        val props = utModelInstance.extensionElements.elementsQuery.filterByType<CamundaProperties>(CamundaProperties::class.java).singleResult()
-        val allowedVars = props.camundaProperties.find {
+        val props = utModelInstance.extensionElements?.elementsQuery?.filterByType<CamundaProperties>(CamundaProperties::class.java)?.list()?.firstOrNull()
+
+        val allowedVars = props?.camundaProperties?.find {
             it.camundaName == allowedVariablesKey
         }
 
-        val restrictedVars = props.camundaProperties.find {
+        val restrictedVars = props?.camundaProperties?.find {
             it.camundaName == restrictedVariablesKey
         }
 
