@@ -2,11 +2,9 @@ package com.github.stephenott.camunda.tasks.forms.command
 
 import org.camunda.bpm.engine.ProcessEngine
 import org.camunda.bpm.engine.impl.FormServiceImpl
-import org.camunda.bpm.engine.impl.ServiceImpl
 import org.camunda.bpm.engine.impl.cfg.ProcessEngineConfigurationImpl
 import org.camunda.bpm.engine.impl.cfg.ProcessEnginePlugin
 import org.camunda.bpm.engine.variable.VariableMap
-import kotlin.reflect.full.createInstance
 
 /**
  * Plugin for replacing the GetTaskFormVariablesCmd with CustomGetTaskFormVariablesCmd.
@@ -22,7 +20,6 @@ open class GetFormVariablesSecurityProcessEnginePlugin : ProcessEnginePlugin {
                 return commandExecutor.execute(CustomGetTaskFormVariablesCmd(taskId, formVariables, deserializeObjectValues))
             }
         }
-
     }
 
     override fun postInit(processEngineConfiguration: ProcessEngineConfigurationImpl) {
