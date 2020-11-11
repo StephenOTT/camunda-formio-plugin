@@ -1,7 +1,7 @@
 package com.github.stephenott.camunda
 
 import com.github.stephenott.camunda.formio.Application
-import org.assertj.core.api.Assertions.*
+import org.assertj.core.api.Assertions.assertThat
 import org.camunda.bpm.engine.ProcessEngine
 import org.junit.jupiter.api.BeforeAll
 import org.junit.jupiter.api.Order
@@ -9,7 +9,6 @@ import org.junit.jupiter.api.Test
 import org.junit.jupiter.api.TestInstance
 import org.springframework.beans.factory.annotation.Autowired
 import org.springframework.boot.test.context.SpringBootTest
-import org.springframework.test.context.web.WebAppConfiguration
 import java.nio.file.Paths
 
 
