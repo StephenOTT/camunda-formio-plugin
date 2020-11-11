@@ -114,6 +114,19 @@ Examples:
 1. `embedded:/forms/formio.html?path=/forms/MyStartForm.json` (where the MyStartForm.json was placed in the `src/main/webapp/forms` folder.  **Make sure your path starts with a `/`**)
 
 
+### Configuration through Camunda Extension Properties
+
+If you enable the `FormioParseListenerProcessEnginePlugin`, you can configure through Extension Properties rather than 
+manually creating the formKey:
+
+![extension props usage](/doc/formio_config_extension_props.png)
+
+The same configuration options used in the formKey are used in the extension properties. 
+Each extension property has a prefix of `formio_`.
+
+For Server Validation you add a **name:** `formio_validation`, **value:** `true`.
+ 
+
 ## Submission Storage
 
 When a successful submission occurs, a `json` variable will be created as a Process Instance Variable. 

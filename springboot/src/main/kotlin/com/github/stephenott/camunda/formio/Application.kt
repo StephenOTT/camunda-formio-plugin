@@ -17,3 +17,6 @@ class MyPlugin: FormioFormFieldValidatorProcessEnginePlugin()
 
 @Component
 class MyFormsSecurityPlugin: GetFormVariablesSecurityProcessEnginePlugin()
+
+@Component
+class MyFormioConfigParser: FormioParseListenerProcessEnginePlugin()

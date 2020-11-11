@@ -1,11 +1,17 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <bpmn:definitions xmlns:bpmn="http://www.omg.org/spec/BPMN/20100524/MODEL" xmlns:bpmndi="http://www.omg.org/spec/BPMN/20100524/DI" xmlns:dc="http://www.omg.org/spec/DD/20100524/DC" xmlns:camunda="http://camunda.org/schema/1.0/bpmn" xmlns:di="http://www.omg.org/spec/DD/20100524/DI" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" id="Definitions_1rhin5k" targetNamespace="http://bpmn.io/schema/bpmn" exporter="Camunda Modeler" exporterVersion="4.2.0">
   <bpmn:process id="someProcess1" name="Some Process 1" isExecutable="true">
-    <bpmn:startEvent id="Event_0emfvgy" camunda:formKey="embedded:/forms/formio.html?deployment=MyStartForm.json&#38;var=submission&#38;transient=true">
+    <bpmn:startEvent id="Event_0emfvgy">
       <bpmn:extensionElements>
         <camunda:executionListener event="end">
           <camunda:script scriptFormat="javascript">execution.setVariable('someOtherVariable', '12345')</camunda:script>
         </camunda:executionListener>
+        <camunda:properties>
+          <camunda:property name="formio_deployment" value="MyStartForm.json" />
+          <camunda:property name="formio_var" value="submission" />
+          <camunda:property name="formio_transient" value="true" />
+          <camunda:property name="formio_validation" value="false" />
+        </camunda:properties>
       </bpmn:extensionElements>
       <bpmn:outgoing>Flow_1ax32ut</bpmn:outgoing>
     </bpmn:startEvent>
@@ -159,6 +165,7 @@ execution.setVariable('neverSeeVar', 'this variable should never be returned on 
   <bpmn:error id="Error_0c6diu9" name="someError" errorCode="default" />
   <bpmn:escalation id="Escalation_0u474pr" name="someEscalation" escalationCode="default" />
   <bpmn:escalation id="Escalation_07acmmp" name="custom-escalation" escalationCode="ce1" />
+  <bpmn:message id="Message_1vt08wr" name="Message_3ffndpr" />
   <bpmndi:BPMNDiagram id="BPMNDiagram_1">
     <bpmndi:BPMNPlane id="BPMNPlane_1" bpmnElement="someProcess1">
       <bpmndi:BPMNEdge id="Flow_0dsu483_di" bpmnElement="Flow_0dsu483">

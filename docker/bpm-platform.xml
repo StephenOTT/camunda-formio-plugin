@@ -43,9 +43,12 @@
             </plugin>
 
             <plugin>
-                <class>com.github.stephenott.camunda.tasks.forms.command.GetFormVariablesSecurityProcessEnginePlugin</class>
+                <class>com.github.stephenott.camunda.formio.FormioParseListenerProcessEnginePlugin</class>
             </plugin>
 
+            <plugin>
+                <class>com.github.stephenott.camunda.tasks.forms.command.GetFormVariablesSecurityProcessEnginePlugin</class>
+            </plugin>
 
             <!-- LDAP CONFIGURATION -->
             <!-- Uncomment this section in order to enable LDAP support for this process engine -->
