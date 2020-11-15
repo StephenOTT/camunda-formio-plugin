@@ -25,6 +25,9 @@ dependencies {
     implementation("com.fasterxml.jackson.datatype:jackson-datatype-jsr310:2.10.3")
 
     implementation("org.apache.httpcomponents:fluent-hc:4.5.12")
+
+    compileOnly("org.camunda.bpm:camunda-engine-rest")
+    compileOnly("javax:javaee-api:6.0")
 }
 
 java {
