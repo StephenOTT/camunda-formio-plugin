@@ -76,6 +76,7 @@ class FormioStartEventRestService() : DefaultProcessEngineRestServiceImpl() {
     }
 
     fun checkStartFormAuthz(engine: ProcessEngine, processDefinition: ProcessDefinitionEntity) {
+        //@TODO rebuild this so it is part of a Command execution so the login is supported...
         if ((engine.processEngineConfiguration as ProcessEngineConfigurationImpl).isAuthorizationEnabled) {
 //            val processEngineConfiguration: ProcessEngineConfigurationImpl = engine.processEngineConfiguration as ProcessEngineConfigurationImpl
 //            val deploymentCache = processEngineConfiguration.deploymentCache

@@ -23,26 +23,27 @@ class FormioUserTaskRestService() : DefaultProcessEngineRestServiceImpl() {
         val rootResourcePath = getRelativeEngineUri(null).toASCIIString() //@TODO review if this is needed...
         val processEngine = FormioFormRestUtils.getEngine(null, objectMapper, rootResourcePath)
 
-        val task = processEngine.taskService.createTaskQuery().taskId(taskId).singleResult()
+        val task = processEngine.taskService.createTaskQuery().taskId(taskId).singleResult() as TaskEntity
 
-        val def = (task as TaskEntity).processDefinition
+        val def = (task).processDefinition
 
-        checkUserTaskFormAuthz(processEngine, def) //@TODO validate that this works...
+        checkUserTaskFormAuthz(processEngine, task) //@TODO validate that this works...
 
         val formKey = processEngine.formService.getTaskFormKey(def.id, task.taskDefinitionKey)
 
         return FormioFormRestUtils.getSchemaResponse(processEngine, def.deploymentId, formKey, objectMapper)
     }
 
-    fun checkUserTaskFormAuthz(engine: ProcessEngine, processDefinition: ProcessDefinitionEntity) {
-       //@TODO Refactor to support User Task Authz
+    fun checkUserTaskFormAuthz(engine: ProcessEngine, taskEntity: TaskEntity) {
+       //@TODO rebuild this so it is part of a Command execution so the login is supported...
+
         if ((engine.processEngineConfiguration as ProcessEngineConfigurationImpl).isAuthorizationEnabled) {
 //            val processEngineConfiguration: ProcessEngineConfigurationImpl = engine.processEngineConfiguration as ProcessEngineConfigurationImpl
 //            val deploymentCache = processEngineConfiguration.deploymentCache
 //            val processDefinition = deploymentCache.findDeployedProcessDefinitionById(processDefinitionId)
             kotlin.runCatching {
                 for (checker in (engine.processEngineConfiguration as ProcessEngineConfigurationImpl).commandCheckers) {
-                    checker.checkReadProcessDefinition(processDefinition)
+                    checker.checkReadTask(taskEntity)
                 }
             }.onFailure {
                 if (it is AuthorizationException) {
