@@ -1,2 +1,2 @@
 rootProject.name = "camunda-formio-plugin"
-include("formfieldvalidator", "springboot")
+include("formfieldvalidator", "springboot", "tasklistplugin")

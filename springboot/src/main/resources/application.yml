@@ -1,5 +1,7 @@
 camunda:
   bpm:
+    authorization:
+      enabled: true
     admin-user:
       id: admin
       password: admin

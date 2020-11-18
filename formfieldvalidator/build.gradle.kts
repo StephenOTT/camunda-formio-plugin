@@ -15,7 +15,7 @@ dependencies {
     implementation("org.jetbrains.kotlin:kotlin-stdlib-jdk8:$kotlinVersion")
     implementation("org.jetbrains.kotlin:kotlin-reflect:$kotlinVersion")
 
-    implementation(enforcedPlatform("org.camunda.bpm:camunda-bom:7.13.0"))
+    implementation(platform("org.camunda.bpm:camunda-bom:7.13.0"))
     implementation("org.camunda.bpm:camunda-engine")
 
     implementation("org.camunda.bpm:camunda-engine-plugin-spin")
@@ -28,6 +28,8 @@ dependencies {
 
     compileOnly("org.camunda.bpm:camunda-engine-rest")
     compileOnly("javax:javaee-api:6.0")
+
+    implementation("org.camunda.bpm.webapp:camunda-webapp")
 }
 
 java {

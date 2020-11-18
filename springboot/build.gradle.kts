@@ -38,6 +38,7 @@ dependencies {
     testImplementation("org.springframework.boot:spring-boot-starter-test")
 
     implementation(project(":formfieldvalidator"))
+    implementation(project(":tasklistplugin"))
 }
 
 application {
