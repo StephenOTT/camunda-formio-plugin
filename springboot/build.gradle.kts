@@ -38,6 +38,13 @@ dependencies {
     testImplementation("org.springframework.boot:spring-boot-starter-test")
 
     implementation(project(":formfieldvalidator"))
+    
+	// Groovy
+	implementation("org.codehaus.groovy:groovy-jsr223")
+	
+	// Camunda Connect
+	implementation("org.camunda.bpm:camunda-engine-plugin-connect")
+	implementation("org.camunda.connect:camunda-connect-connectors-all")
 }
 
 application {
