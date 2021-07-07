@@ -41,7 +41,7 @@ dependencies {
 }
 
 application {
-    mainClassName = "com.github.stephenott.camunda.formio.Application"
+    mainClassName = "com.github.stephenott.camunda.formio.ApplicationKt"
 }
 
 tasks {
